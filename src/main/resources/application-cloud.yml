@@ -35,14 +35,14 @@ spring:
       cache:
         period: 3600
 
-# Embabel configuration for cloud environment
+# Embabel configuration for cloud environment with GenAI service
 embabel:
   models:
-    default-llm: gpt-4o-mini
+    default-llm: genai-chat
   agent:
     platform:
       ranking:
-        llm: gpt-4o-mini
+        llm: genai-chat
 
 # Task breakdown agent configuration
 task:
