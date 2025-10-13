@@ -175,12 +175,9 @@ class EmbabelDemo {
     formatExecutionPlan(executionPlan) {
         const stepsHtml = executionPlan.steps.map(step => `
             <div class="border-l-4 border-blue-500 pl-4 mb-4">
-                <h4 class="font-semibold text-lg">${step.priority}. ${step.title}</h4>
-                <p class="text-gray-600 mb-2">${step.description}</p>
+                <h4 class="font-semibold text-lg">${step.priority}. ${step.description}</h4>
                 <div class="flex items-center space-x-4 text-sm text-gray-500">
                     <span><strong>Priority:</strong> ${step.priority}</span>
-                    <span><strong>Time:</strong> ${step.estimatedTime}</span>
-                    <span><strong>Category:</strong> ${step.category}</span>
                 </div>
             </div>
         `).join('');
@@ -190,21 +187,16 @@ class EmbabelDemo {
                 <h1>Task Execution Plan</h1>
                 
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-                    <h2>Original Task</h2>
-                    <p><strong>Description:</strong> ${executionPlan.originalTask.description}</p>
-                    <p><strong>Category:</strong> ${executionPlan.originalTask.category}</p>
-                    <p><strong>Complexity:</strong> ${executionPlan.originalTask.complexity}</p>
+                    <h2>Summary</h2>
+                    <p>${executionPlan.summary}</p>
                 </div>
-
-                <h2>Summary</h2>
-                <p>${executionPlan.summary}</p>
 
                 <h2>Execution Steps</h2>
                 ${stepsHtml}
 
                 <div class="bg-green-50 border border-green-200 rounded-lg p-4 mt-6">
-                    <h3>Total Estimated Time</h3>
-                    <p class="text-lg font-semibold text-green-800">${executionPlan.totalEstimatedTime}</p>
+                    <h3>Estimated Time</h3>
+                    <p class="text-lg font-semibold text-green-800">${executionPlan.estimatedTime}</p>
                 </div>
             </div>
         `;
