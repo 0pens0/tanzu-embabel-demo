@@ -176,10 +176,15 @@ class StepManager {
     }
 
     initializeResultsReview() {
-        // Prepare results display
-        const resultsDisplay = document.getElementById('execution-plan-display');
-        if (resultsDisplay && !resultsDisplay.hasChildNodes()) {
-            resultsDisplay.innerHTML = '<div class="text-center text-gray-500 py-8">Complete agent execution to see results...</div>';
+        // Display execution plan results if available
+        if (window.embabelDemo && window.embabelDemo.executionData && window.embabelDemo.executionData.finalResult) {
+            window.embabelDemo.displayExecutionPlan(window.embabelDemo.executionData.finalResult);
+            window.embabelDemo.displayComparisonView(window.embabelDemo.currentScenario, window.embabelDemo.executionData.finalResult);
+        } else {
+            const resultsDisplay = document.getElementById('execution-plan-display');
+            if (resultsDisplay) {
+                resultsDisplay.innerHTML = '<div class="text-center text-gray-500 py-8">Complete agent execution to see results...</div>';
+            }
         }
     }
 

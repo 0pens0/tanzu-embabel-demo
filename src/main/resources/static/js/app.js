@@ -30,10 +30,25 @@ class EmbabelDemo {
         }
         
         if (this.taskInput) {
-            this.taskInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
+        this.taskInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey) {
                     this.executeCustomTask();
-                }
+            }
+        });
+    }
+
+        // Navigation buttons
+        const backToExecutionBtn = document.getElementById('back-to-execution');
+        if (backToExecutionBtn) {
+            backToExecutionBtn.addEventListener('click', () => {
+                this.stepManager.goToStep(2);
+            });
+        }
+        
+        const learnMoreBtn = document.getElementById('learn-more');
+        if (learnMoreBtn) {
+            learnMoreBtn.addEventListener('click', () => {
+                this.stepManager.goToStep(4);
             });
         }
     }
@@ -114,6 +129,10 @@ class EmbabelDemo {
             // Complete execution step
             this.stepManager.completeExecution(executionTrace);
             
+            // Display results immediately
+            this.displayExecutionPlan(executionTrace.finalResult);
+            this.displayComparisonView(this.currentScenario, executionTrace.finalResult);
+            
             // Move to results step
             this.stepManager.goToStep(3);
             
@@ -155,7 +174,7 @@ class EmbabelDemo {
                 <div class="step-number flex items-center justify-center w-8 h-8 rounded-full bg-gray-300 text-gray-600 font-semibold mr-4">
                     ${stepNumber}
                 </div>
-                <div class="flex-1">
+            <div class="flex-1">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="text-lg font-semibold text-gray-900">${this.formatActionName(action.actionName)}</h4>
                         <span class="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">@Action</span>
@@ -259,7 +278,7 @@ class EmbabelDemo {
                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                         ${scenario.category}
                     </span>
-                </div>
+            </div>
                 
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Complexity</h4>
@@ -272,7 +291,7 @@ class EmbabelDemo {
                     <h4 class="font-semibold text-gray-900 mb-2">Expected Steps</h4>
                     <p class="text-sm text-gray-600">${scenario.estimatedSteps} actions</p>
                 </div>
-                
+
                 <div>
                     <h4 class="font-semibold text-gray-900 mb-2">Duration</h4>
                     <p class="text-sm text-gray-600">${scenario.expectedDuration}</p>
@@ -335,9 +354,9 @@ class EmbabelDemo {
     setLoading(loading) {
         if (this.executeCustomButton) {
             this.executeCustomButton.disabled = loading;
-            if (loading) {
+        if (loading) {
                 this.executeCustomButton.innerHTML = '<div class="spinner"></div>Processing...';
-            } else {
+        } else {
                 this.executeCustomButton.textContent = 'Execute Custom Task';
             }
         }
@@ -366,6 +385,102 @@ class EmbabelDemo {
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Results display methods
+    displayExecutionPlan(executionPlan) {
+        const resultsDisplay = document.getElementById('execution-plan-display');
+        if (!resultsDisplay) return;
+
+        const stepsHtml = executionPlan.steps.map(step => `
+            <div class="border-l-4 border-blue-500 pl-4 mb-4 bg-blue-50 p-4 rounded-r-lg">
+                <h4 class="font-semibold text-lg text-gray-900 mb-2">${step.priority}. ${step.description}</h4>
+                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        Priority ${step.priority}
+                    </span>
+                </div>
+            </div>
+        `).join('');
+
+        resultsDisplay.innerHTML = `
+            <div class="results-content">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Task Execution Plan</h2>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                        <h3 class="text-lg font-semibold text-blue-900 mb-2">Summary</h3>
+                        <p class="text-blue-800">${executionPlan.summary}</p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Execution Steps</h3>
+                    <div class="space-y-4">
+                        ${stepsHtml}
+                    </div>
+                </div>
+
+                <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-green-900 mb-2">Estimated Time</h3>
+                    <p class="text-lg font-semibold text-green-800">${executionPlan.estimatedTime}</p>
+                </div>
+            </div>
+        `;
+    }
+
+    displayComparisonView(scenario, executionPlan) {
+        const comparisonView = document.getElementById('comparison-view');
+        if (!comparisonView) return;
+
+        comparisonView.innerHTML = `
+            <div class="comparison-view">
+                <div class="comparison-section input">
+                    <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                        <span class="text-lg mr-2">📥</span>
+                        Original Task
+                    </h4>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Description:</span>
+                            <p class="text-sm text-gray-600 mt-1">${scenario.title}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Category:</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2">
+                                ${scenario.category}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Complexity:</span>
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${scenario.getComplexityColor()} ml-2">
+                                ${scenario.complexity}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="comparison-section output">
+                    <h4 class="font-semibold text-gray-900 mb-3 flex items-center">
+                        <span class="text-lg mr-2">📤</span>
+                        Generated Plan
+                    </h4>
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Steps Generated:</span>
+                            <p class="text-sm text-gray-600 mt-1">${executionPlan.steps.length} actionable steps</p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Estimated Duration:</span>
+                            <p class="text-sm text-gray-600 mt-1">${executionPlan.estimatedTime}</p>
+                        </div>
+                        <div>
+                            <span class="text-sm font-medium text-gray-700">Plan Summary:</span>
+                            <p class="text-sm text-gray-600 mt-1">${executionPlan.summary}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     // Educational content loading
