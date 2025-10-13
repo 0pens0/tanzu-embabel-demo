@@ -1,6 +1,2 @@
-/Users/orenpenso/git/tanzu-embabel-demo/src/main/java/com/embabel/demo/TanzuEmbabelDemoApplication.java
-/Users/orenpenso/git/tanzu-embabel-demo/src/main/java/com/embabel/demo/agent/TaskBreakdownAgent.java
-/Users/orenpenso/git/tanzu-embabel-demo/src/main/java/com/embabel/demo/api/AgentController.java
-/Users/orenpenso/git/tanzu-embabel-demo/src/main/java/com/embabel/demo/api/dto/ExecutionTrace.java
-/Users/orenpenso/git/tanzu-embabel-demo/src/main/java/com/embabel/demo/api/dto/TaskRequest.java
-/Users/orenpenso/git/tanzu-embabel-demo/src/main/java/com/embabel/demo/service/AgentExecutionService.java
+/Users/orenpenso/git/tanzu-embabel-demo/src-genai/main/java/com/embabel/demo/GenAiDemoApplication.java
+/Users/orenpenso/git/tanzu-embabel-demo/src-genai/main/java/com/embabel/demo/api/GenAiDemoController.java

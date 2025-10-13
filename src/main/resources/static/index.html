@@ -352,89 +352,119 @@ ExecutionPlan createPlan(Task task,
             <div class="text-center mb-12">
                 <h2 class="text-3xl font-bold text-gray-900 mb-4">Interactive Demo</h2>
                 <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                    Try the TaskBreakdownAgent in action. Enter a task description and watch as the agent 
-                    analyzes it, breaks it into steps, prioritizes them, and creates an execution plan.
+                    Experience the Embabel framework in action. Watch as AI agents think, reason, and execute tasks step-by-step with full transparency.
                 </p>
             </div>
 
-            <div class="max-w-4xl mx-auto">
-                <!-- Demo Input -->
-                <div class="bg-white rounded-lg shadow-sm border p-6 mb-8">
-                    <h3 class="text-xl font-semibold mb-4">Enter Your Task</h3>
-                    <div class="space-y-4">
-                        <textarea 
-                            id="taskInput" 
-                            placeholder="Describe a task you'd like to break down into actionable steps..."
-                            class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                            rows="4"
-                        ></textarea>
+            <!-- Demo Container with Step-based Wizard -->
+            <div id="demo-container" class="max-w-7xl mx-auto">
+                <!-- Step Progress Indicator will be inserted here by StepManager -->
+                
+                <!-- Step 1: Task Selection -->
+                <div id="step-select" class="step-content active">
+                    <div class="bg-white rounded-lg shadow-sm border p-8">
+                        <div class="text-center mb-8">
+                            <h3 class="text-2xl font-semibold mb-4">Choose Your Task</h3>
+                            <p class="text-gray-600">
+                                Select a sample task or create your own to see the agent's thinking process in action.
+                            </p>
+                        </div>
                         
-                        <!-- Sample Tasks -->
-                        <div>
-                            <p class="text-sm text-gray-600 mb-2">Or try one of these sample tasks:</p>
-                            <div id="sampleTasks" class="flex flex-wrap gap-2">
-                                <!-- Sample tasks will be loaded here -->
+                        <!-- Scenario Cards Grid -->
+                        <div id="scenario-cards" class="mb-8">
+                            <!-- Scenario cards will be loaded here -->
+                        </div>
+                        
+                        <!-- Custom Task Input -->
+                        <div id="custom-task-input" class="border-t pt-8">
+                            <h4 class="text-lg font-semibold mb-4">Or Create Your Own Task</h4>
+                            <div class="space-y-4">
+                                <textarea 
+                                    id="taskInput" 
+                                    placeholder="Describe a task you'd like to break down into actionable steps..."
+                                    class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                                    rows="4"
+                                ></textarea>
+                                
+                                <button 
+                                    id="executeCustomButton" 
+                                    class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Execute Custom Task
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Agent Execution -->
+                <div id="step-execute" class="step-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Left Panel: Task Context -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold mb-4">Task Context</h3>
+                            <div id="task-context">
+                                <!-- Task details will be shown here -->
                             </div>
                         </div>
                         
-                        <button 
-                            id="executeButton" 
-                            class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            Break Down Task
-                        </button>
+                        <!-- Center Panel: Agent Execution Flow -->
+                        <div class="lg:col-span-2 bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold mb-4">Agent Execution Flow</h3>
+                            <div id="action-timeline" class="space-y-4">
+                                <!-- Real-time action execution display -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Panel: Execution Insights (Full Width Below) -->
+                    <div class="mt-6 bg-white rounded-lg shadow-sm border p-6">
+                        <h3 class="text-lg font-semibold mb-4">Execution Insights</h3>
+                        <div id="execution-metrics" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <!-- Timing, persona info, LLM details -->
+                        </div>
                     </div>
                 </div>
 
-                <!-- Execution Progress -->
-                <div id="executionProgress" class="bg-white rounded-lg shadow-sm border p-6 mb-8 hidden">
-                    <h3 class="text-xl font-semibold mb-4">Execution Progress</h3>
-                    <div id="progressSteps" class="space-y-4">
-                        <!-- Progress steps will be shown here -->
+                <!-- Step 3: Results Review -->
+                <div id="step-results" class="step-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Left: Execution Plan Display -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold mb-4">Execution Plan</h3>
+                            <div id="execution-plan-display" class="prose max-w-none">
+                                <!-- Enhanced plan visualization -->
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Comparison View -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold mb-4">Input vs Output</h3>
+                            <div id="comparison-view">
+                                <!-- Input vs Output comparison -->
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Results -->
-                <div id="results" class="bg-white rounded-lg shadow-sm border p-6 hidden">
-                    <h3 class="text-xl font-semibold mb-4">Execution Plan</h3>
-                    <div id="resultsContent" class="prose max-w-none">
-                        <!-- Results will be displayed here -->
-                    </div>
-                </div>
-
-                <!-- Code Example -->
-                <div class="bg-white rounded-lg shadow-sm border p-6 mt-8">
-                    <h3 class="text-xl font-semibold mb-4">Agent Code Example</h3>
-                    <p class="text-gray-600 mb-4">
-                        Here's the actual code for the TaskBreakdownAgent that just executed:
-                    </p>
-                    <div class="bg-gray-900 rounded p-4 overflow-x-auto">
-                        <pre><code class="language-java">@Agent(description = "Break down user tasks into actionable steps")
-public class TaskBreakdownAgent {
-    
-    @Action
-    Task analyzeTask(UserInput userInput, OperationContext context) {
-        return context.ai()
-            .withLlm(LlmOptions.withAutoLlm().withTemperature(0.3))
-            .withPromptContributor(ANALYST)
-            .createObject("Analyze this task...", Task.class);
-    }
-    
-    @Action
-    List&lt;Step&gt; breakDownIntoSteps(Task task, OperationContext context) {
-        return context.ai()
-            .withLlm(LlmOptions.withAutoLlm().withTemperature(0.4))
-            .withPromptContributor(ANALYST)
-            .createObject("Break down into steps...", List.class);
-    }
-    
-    @AchievesGoal(description = "Execution plan created")
-    @Action
-    ExecutionPlan createExecutionPlan(Task task, List&lt;Step&gt; steps) {
-        // Create final execution plan
-        return new ExecutionPlan(task, steps, summary, totalTime);
-    }
-}</code></pre>
+                <!-- Step 4: Educational Insights -->
+                <div id="step-learn" class="step-content hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Left: Code Examples -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold mb-4">Code Examples</h3>
+                            <div id="code-examples">
+                                <!-- @Action method examples -->
+                            </div>
+                        </div>
+                        
+                        <!-- Right: Architecture Diagram -->
+                        <div class="bg-white rounded-lg shadow-sm border p-6">
+                            <h3 class="text-lg font-semibold mb-4">Architecture Overview</h3>
+                            <div id="architecture-diagram">
+                                <!-- Domain model visualization -->
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -465,8 +495,10 @@ public class TaskBreakdownAgent {
     </footer>
 
     <!-- Scripts -->
-    <script src="/js/app.js?v=202510131600"></script>
-    <script src="/js/education.js?v=202510131600"></script>
+    <script src="/js/demo-steps.js?v=202510131800"></script>
+    <script src="/js/sample-scenarios.js?v=202510131800"></script>
+    <script src="/js/app.js?v=202510131800"></script>
+    <script src="/js/education.js?v=202510131800"></script>
     
     <!-- Initialize syntax highlighting -->
     <script>

@@ -35,14 +35,24 @@ spring:
       cache:
         period: 3600
 
+  # OpenAI configuration for GenAI service integration
+  ai:
+    openai:
+      api-key: ${GENAI_API_KEY:}
+      base-url: ${GENAI_BASE_URL:}
+      chat:
+        options:
+          model: ${GENAI_MODEL:gpt-4o-mini}
+          temperature: 0.7
+
 # Embabel configuration for cloud environment with GenAI service
 embabel:
   models:
-    default-llm: genai-chat
+    default-llm: openai-chat
   agent:
     platform:
       ranking:
-        llm: genai-chat
+        llm: openai-chat
 
 # Task breakdown agent configuration
 task:

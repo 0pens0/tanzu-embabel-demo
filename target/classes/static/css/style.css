@@ -237,3 +237,300 @@ input:focus, textarea:focus {
 .step-number.error {
     background: #ef4444;
 }
+
+/* Step-based Wizard Styles */
+.step-content {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.step-content.hidden {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+    animation: fadeInUp 0.5s ease-out;
+}
+
+/* Step Progress Indicator */
+.step-indicator {
+    position: relative;
+}
+
+.step {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.step:hover {
+    background-color: #f3f4f6;
+}
+
+.step.active {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.step.completed {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.step-circle {
+    transition: all 0.3s ease;
+    border: 2px solid #d1d5db;
+    color: #6b7280;
+}
+
+.step.active .step-circle {
+    border-color: #3b82f6;
+    background-color: #3b82f6;
+    color: white;
+}
+
+.step.completed .step-circle {
+    border-color: #10b981;
+    background-color: #10b981;
+    color: white;
+}
+
+.step-connector {
+    transition: all 0.3s ease;
+    background-color: #e5e7eb;
+    height: 2px;
+}
+
+.step.completed + .step-connector,
+.step-connector.bg-green-500 {
+    background-color: #10b981;
+}
+
+/* Scenario Cards */
+.scenario-card {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.scenario-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border-color: #3b82f6;
+}
+
+.scenario-card.selected {
+    border-color: #3b82f6;
+    background-color: #eff6ff;
+}
+
+/* Action Timeline */
+.action-step {
+    position: relative;
+    transition: all 0.5s ease;
+}
+
+.action-step::before {
+    content: '';
+    position: absolute;
+    left: -1rem;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.action-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: -0.75rem;
+    top: 2rem;
+    width: 0.5rem;
+    height: 0.5rem;
+    background-color: #e5e7eb;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.action-step.active::before {
+    background-color: #3b82f6;
+}
+
+.action-step.active::after {
+    background-color: #3b82f6;
+}
+
+.action-step.completed::before {
+    background-color: #10b981;
+}
+
+.action-step.completed::after {
+    background-color: #10b981;
+}
+
+/* Thinking and Reasoning Sections */
+.thinking-section,
+.reasoning-section {
+    margin-bottom: 1rem;
+}
+
+.thinking-content,
+.reasoning-content {
+    font-family: 'Georgia', serif;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+/* Input/Output Sections */
+.input-section,
+.output-section {
+    margin-bottom: 1rem;
+}
+
+.input-content,
+.output-content {
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+/* Execution Metrics */
+.metric-card {
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Comparison View */
+.comparison-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.comparison-section {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.comparison-section.input {
+    background-color: #f0f9ff;
+    border-color: #0ea5e9;
+}
+
+.comparison-section.output {
+    background-color: #f0fdf4;
+    border-color: #22c55e;
+}
+
+/* Code Examples */
+.code-example {
+    margin-bottom: 1.5rem;
+}
+
+.code-example h4 {
+    color: #374151;
+    margin-bottom: 0.5rem;
+}
+
+/* Architecture Diagram */
+.architecture-flow {
+    padding: 1rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Responsive adjustments for step-based layout */
+@media (max-width: 1024px) {
+    .step-indicator {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .step-connector {
+        display: none;
+    }
+    
+    .comparison-view {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .step {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .step-circle {
+        width: 1.5rem;
+        height: 1.5rem;
+        font-size: 0.75rem;
+    }
+    
+    .action-step {
+        padding: 1rem;
+    }
+    
+    .action-step::before,
+    .action-step::after {
+        display: none;
+    }
+}
+
+/* Animation for step transitions */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.step-content.active {
+    animation: slideInRight 0.5s ease-out;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Focus states for accessibility */
+.step:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+.scenario-card:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
