@@ -371,12 +371,88 @@ class EmbabelDemo {
 
     formatInputOutput(data) {
         if (typeof data === 'string') {
-            return data.length > 100 ? data.substring(0, 100) + '...' : data;
+            return `<div class="formatted-output string-output">${data}</div>`;
         }
-        if (typeof data === 'object') {
-            return JSON.stringify(data, null, 2).substring(0, 100) + '...';
+        
+        if (Array.isArray(data)) {
+            // Check if it's an array of steps (has description and priority fields)
+            if (data.length > 0 && data[0].description && data[0].priority) {
+                return this.formatStepsArray(data);
+            }
+            // Regular array
+            return this.formatArray(data);
         }
-        return String(data);
+        
+        if (typeof data === 'object' && data !== null) {
+            return this.formatObject(data);
+        }
+        
+        return `<div class="formatted-output string-output">${String(data)}</div>`;
+    }
+
+    formatStepsArray(steps) {
+        const stepsHtml = steps.map(step => `
+            <div class="step-item">
+                <div class="step-header">
+                    <span class="step-priority">${step.priority}.</span>
+                    <span class="step-description">${step.description}</span>
+                </div>
+            </div>
+        `).join('');
+        
+        return `<div class="formatted-output steps-output">
+            <div class="steps-list">${stepsHtml}</div>
+        </div>`;
+    }
+
+    formatArray(array) {
+        const itemsHtml = array.map((item, index) => `
+            <div class="array-item">
+                <span class="array-index">${index + 1}.</span>
+                <span class="array-value">${this.formatArrayItem(item)}</span>
+            </div>
+        `).join('');
+        
+        return `<div class="formatted-output array-output">
+            <div class="array-list">${itemsHtml}</div>
+        </div>`;
+    }
+
+    formatArrayItem(item) {
+        if (typeof item === 'string') {
+            return item;
+        }
+        if (typeof item === 'object') {
+            return JSON.stringify(item, null, 2);
+        }
+        return String(item);
+    }
+
+    formatObject(obj) {
+        const entries = Object.entries(obj);
+        const entriesHtml = entries.map(([key, value]) => `
+            <div class="object-entry">
+                <span class="object-key">${key}:</span>
+                <span class="object-value">${this.formatObjectValue(value)}</span>
+            </div>
+        `).join('');
+        
+        return `<div class="formatted-output object-output">
+            <div class="object-entries">${entriesHtml}</div>
+        </div>`;
+    }
+
+    formatObjectValue(value) {
+        if (typeof value === 'string') {
+            return value;
+        }
+        if (Array.isArray(value)) {
+            return `[${value.length} items]`;
+        }
+        if (typeof value === 'object') {
+            return `{${Object.keys(value).length} properties}`;
+        }
+        return String(value);
     }
 
     setLoading(loading) {
