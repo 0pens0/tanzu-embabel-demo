@@ -11,12 +11,7 @@ applications:
     JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
     JBP_CONFIG_JAVA_OPTS: '{ java_opts: "-XX:ReservedCodeCacheSize=128M -XX:MaxDirectMemorySize=256M" }'
   services:
-    # Add any required services here (e.g., databases, message queues)
-    # - my-database
-    # - my-messaging-service
-  routes:
-    - route: tanzu-embabel-demo.apps.example.com
-      # Replace with your actual Cloud Foundry domain
+    - embabel-genai
   health-check-type: http
   health-check-http-endpoint: /api/health
   timeout: 180
