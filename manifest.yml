@@ -1,0 +1,23 @@
+---
+applications:
+- name: tanzu-embabel-demo
+  memory: 1G
+  instances: 1
+  buildpacks:
+    - java_buildpack
+  path: target/tanzu-embabel-demo-0.1.0-SNAPSHOT.jar
+  env:
+    SPRING_PROFILES_ACTIVE: cloud
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
+    JBP_CONFIG_JAVA_OPTS: '{ java_opts: "-XX:ReservedCodeCacheSize=128M -XX:MaxDirectMemorySize=256M" }'
+  services:
+    # Add any required services here (e.g., databases, message queues)
+    # - my-database
+    # - my-messaging-service
+  routes:
+    - route: tanzu-embabel-demo.apps.example.com
+      # Replace with your actual Cloud Foundry domain
+  health-check-type: http
+  health-check-http-endpoint: /api/health
+  timeout: 180
+  disk_quota: 1G
