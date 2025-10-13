@@ -1,0 +1,12 @@
+com/embabel/demo/agent/TaskBreakdownAgent$ExecutionPlan.class
+com/embabel/demo/api/dto/TaskRequest.class
+com/embabel/demo/agent/TaskBreakdownAgent.class
+com/embabel/demo/agent/TaskBreakdownAgent$Task.class
+com/embabel/demo/api/dto/ExecutionTrace.class
+com/embabel/demo/api/dto/ExecutionTrace$ActionStep.class
+com/embabel/demo/service/AgentExecutionService$FrameworkFeature.class
+com/embabel/demo/service/AgentExecutionService$FrameworkInfo.class
+com/embabel/demo/agent/TaskBreakdownAgent$Step.class
+com/embabel/demo/TanzuEmbabelDemoApplication.class
+com/embabel/demo/api/AgentController.class
+com/embabel/demo/service/AgentExecutionService.class

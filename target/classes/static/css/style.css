@@ -1,0 +1,239 @@
+/* Custom styles for Embabel Demo */
+
+/* Smooth scrolling for navigation links */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Animation for progress steps */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.progress-step {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.progress-step.executing {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+.progress-step.completed {
+    border-left: 4px solid #10b981;
+}
+
+.progress-step.error {
+    border-left: 4px solid #ef4444;
+}
+
+/* Code block styling */
+.hljs {
+    background: #1f2937 !important;
+    border-radius: 0.5rem;
+}
+
+/* Sample task buttons */
+.sample-task {
+    transition: all 0.2s ease;
+}
+
+.sample-task:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Loading spinner */
+.spinner {
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3b82f6;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Results styling */
+.results-content {
+    line-height: 1.6;
+}
+
+.results-content h1 {
+    color: #1f2937;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.results-content h2 {
+    color: #374151;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.results-content h3 {
+    color: #4b5563;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.results-content p {
+    margin-bottom: 1rem;
+}
+
+.results-content ul {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+}
+
+.results-content li {
+    margin-bottom: 0.5rem;
+}
+
+.results-content strong {
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .text-4xl {
+        font-size: 2.5rem;
+    }
+    
+    .text-6xl {
+        font-size: 3rem;
+    }
+    
+    .text-2xl {
+        font-size: 1.5rem;
+    }
+    
+    .text-xl {
+        font-size: 1.25rem;
+    }
+}
+
+/* Navigation active state */
+nav a {
+    position: relative;
+}
+
+nav a:hover::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background-color: #3b82f6;
+    border-radius: 1px;
+}
+
+/* Card hover effects */
+.bg-white {
+    transition: box-shadow 0.2s ease;
+}
+
+.bg-white:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Button focus states */
+button:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* Form input focus states */
+input:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Success/Error states */
+.success {
+    color: #10b981;
+    background-color: #ecfdf5;
+    border: 1px solid #a7f3d0;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.error {
+    color: #ef4444;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+/* Step numbering */
+.step-number {
+    background: #3b82f6;
+    color: white;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+}
+
+.step-number.completed {
+    background: #10b981;
+}
+
+.step-number.error {
+    background: #ef4444;
+}

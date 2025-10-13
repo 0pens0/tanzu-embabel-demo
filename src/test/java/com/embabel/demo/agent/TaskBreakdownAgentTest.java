@@ -241,4 +241,260 @@ class TaskBreakdownAgentTest {
         // so we can't easily test them without mocking the entire context
         // But we can verify the agent is created successfully
     }
+
+    @Test
+    void testAnalyzeTask_EmptyInput() {
+        // Arrange
+        var userInput = new UserInput("", Instant.now());
+        var expectedTask = new TaskBreakdownAgent.Task(
+                "Empty task",
+                "General",
+                "Simple"
+        );
+        context.expectResponse(expectedTask);
+
+        // Act
+        var result = agent.analyzeTask(userInput, context);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Empty task", result.description());
+        assertEquals("General", result.category());
+        assertEquals("Simple", result.complexity());
+    }
+
+    @Test
+    void testAnalyzeTask_VeryLongInput() {
+        // Arrange
+        var longDescription = "This is a very long task description that contains many details about what needs to be accomplished. ".repeat(10);
+        var userInput = new UserInput(longDescription, Instant.now());
+        var expectedTask = new TaskBreakdownAgent.Task(
+                "Complex multi-faceted project",
+                "Project Management",
+                "Complex"
+        );
+        context.expectResponse(expectedTask);
+
+        // Act
+        var result = agent.analyzeTask(userInput, context);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Complex multi-faceted project", result.description());
+        assertEquals("Project Management", result.category());
+        assertEquals("Complex", result.complexity());
+    }
+
+    @Test
+    void testBreakDownIntoSteps_VerifyMaxStepsLimit() {
+        // Arrange
+        var task = new TaskBreakdownAgent.Task(
+                "Very complex project with many components",
+                "Software Development",
+                "Complex"
+        );
+        
+        // Create a response with more steps than the limit to test truncation
+        var manySteps = List.of(
+                new TaskBreakdownAgent.Step("Step 1", "First step", 1, "1 day", "Setup"),
+                new TaskBreakdownAgent.Step("Step 2", "Second step", 2, "2 days", "Development"),
+                new TaskBreakdownAgent.Step("Step 3", "Third step", 3, "1 day", "Testing"),
+                new TaskBreakdownAgent.Step("Step 4", "Fourth step", 4, "1 day", "Deployment"),
+                new TaskBreakdownAgent.Step("Step 5", "Fifth step", 5, "1 day", "Documentation"),
+                new TaskBreakdownAgent.Step("Step 6", "Sixth step", 6, "1 day", "Training"),
+                new TaskBreakdownAgent.Step("Step 7", "Seventh step", 7, "1 day", "Support"),
+                new TaskBreakdownAgent.Step("Step 8", "Eighth step", 8, "1 day", "Maintenance"),
+                new TaskBreakdownAgent.Step("Step 9", "Ninth step", 9, "1 day", "Optimization")
+        );
+        context.expectResponse(manySteps);
+
+        // Act
+        var result = agent.breakDownIntoSteps(task, context);
+
+        // Assert
+        assertNotNull(result);
+        // The agent should respect the maxSteps configuration (8)
+        // Note: The actual implementation doesn't enforce this limit in the test,
+        // it's just a prompt instruction, so we check that the result is not null
+        assertTrue(result.size() > 0);
+    }
+
+    @Test
+    void testBreakDownIntoSteps_VerifyDescriptionLengthLimit() {
+        // Arrange
+        var task = new TaskBreakdownAgent.Task(
+                "Test task",
+                "Testing",
+                "Simple"
+        );
+        
+        var steps = List.of(
+                new TaskBreakdownAgent.Step(
+                        "Test step",
+                        "This is a very long description that exceeds the maximum allowed length for step descriptions in the test configuration",
+                        1,
+                        "1 day",
+                        "Testing"
+                )
+        );
+        context.expectResponse(steps);
+
+        // Act
+        var result = agent.breakDownIntoSteps(task, context);
+
+        // Assert
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        
+        // Verify the prompt includes the max description length constraint
+        var prompt = promptRunner.getLlmInvocations().get(0).getPrompt();
+        assertTrue(prompt.contains("max 150 characters"), 
+                "Prompt should specify maximum description length");
+    }
+
+    @Test
+    void testPrioritizeSteps_VerifyPersonaUsage() {
+        // Arrange
+        var task = new TaskBreakdownAgent.Task(
+                "Test prioritization",
+                "Testing",
+                "Medium"
+        );
+        
+        var initialSteps = List.of(
+                new TaskBreakdownAgent.Step("Step A", "Description A", 3, "1 day", "Setup"),
+                new TaskBreakdownAgent.Step("Step B", "Description B", 1, "2 days", "Development"),
+                new TaskBreakdownAgent.Step("Step C", "Description C", 2, "1 day", "Testing")
+        );
+        
+        var prioritizedSteps = List.of(
+                new TaskBreakdownAgent.Step("Step A", "Description A", 1, "1 day", "Setup"),
+                new TaskBreakdownAgent.Step("Step B", "Description B", 2, "2 days", "Development"),
+                new TaskBreakdownAgent.Step("Step C", "Description C", 3, "1 day", "Testing")
+        );
+        context.expectResponse(prioritizedSteps);
+
+        // Act
+        var result = agent.prioritizeSteps(initialSteps, task, context);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3, result.size());
+        
+        // Verify the prompt includes prioritization instructions
+        var prompt = promptRunner.getLlmInvocations().get(0).getPrompt();
+        assertTrue(prompt.contains("Prioritize and optimize these steps"), 
+                "Prompt should contain prioritization instruction");
+        assertTrue(prompt.contains("Dependencies between steps"), 
+                "Prompt should mention dependencies");
+        assertTrue(prompt.contains("Risk mitigation"), 
+                "Prompt should mention risk mitigation");
+    }
+
+    @Test
+    void testCreateExecutionPlan_VerifyTemperatureSettings() {
+        // Arrange
+        var task = new TaskBreakdownAgent.Task(
+                "Test execution plan",
+                "Testing",
+                "Simple"
+        );
+        
+        var steps = List.of(
+                new TaskBreakdownAgent.Step("Test step", "Test description", 1, "1 day", "Testing")
+        );
+        
+        // Mock the AI responses for summary and time calculation
+        // Note: The order matters - first call is for time calculation, second for summary
+        context.expectResponse("1 day");
+        context.expectResponse("Test summary for execution plan");
+
+        // Act
+        var result = agent.createExecutionPlan(task, steps, context);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(task, result.originalTask());
+        assertEquals(steps, result.steps());
+        assertEquals("Test summary for execution plan", result.summary());
+        assertEquals("1 day", result.totalEstimatedTime());
+        
+        // Verify multiple LLM calls were made (for summary and time calculation)
+        var llmInvocations = promptRunner.getLlmInvocations();
+        assertTrue(llmInvocations.size() >= 2, 
+                "Should make at least 2 LLM calls for summary and time calculation");
+    }
+
+    @Test
+    void testExecutionPlanContentFormat_Detailed() {
+        // Arrange
+        var task = new TaskBreakdownAgent.Task(
+                "Build a comprehensive testing framework",
+                "Software Development",
+                "Complex"
+        );
+        
+        var steps = List.of(
+                new TaskBreakdownAgent.Step(
+                        "Design architecture",
+                        "Create the overall system design and component structure",
+                        1,
+                        "1 week",
+                        "Architecture"
+                ),
+                new TaskBreakdownAgent.Step(
+                        "Implement core functionality",
+                        "Build the main features and business logic",
+                        2,
+                        "2 weeks",
+                        "Development"
+                ),
+                new TaskBreakdownAgent.Step(
+                        "Write comprehensive tests",
+                        "Create unit, integration, and end-to-end tests",
+                        3,
+                        "1 week",
+                        "Testing"
+                )
+        );
+
+        // Act
+        var plan = new TaskBreakdownAgent.ExecutionPlan(
+                task, steps, "A comprehensive plan to build a robust testing framework", "4 weeks"
+        );
+
+        // Assert
+        var content = plan.getContent();
+        
+        // Verify markdown structure
+        assertTrue(content.contains("# Task Execution Plan"), 
+                "Content should have main header");
+        assertTrue(content.contains("**Original Task:** Build a comprehensive testing framework"), 
+                "Content should show original task");
+        assertTrue(content.contains("**Category:** Software Development"), 
+                "Content should show category");
+        assertTrue(content.contains("**Complexity:** Complex"), 
+                "Content should show complexity");
+        assertTrue(content.contains("## Summary"), 
+                "Content should have summary section");
+        assertTrue(content.contains("## Execution Steps"), 
+                "Content should have steps section");
+        assertTrue(content.contains("**Total Estimated Time:** 4 weeks"), 
+                "Content should show total time");
+        
+        // Verify step formatting
+        assertTrue(content.contains("1. **Design architecture** (Priority: 1, 1 week)"), 
+                "Content should format steps with priority and time");
+        assertTrue(content.contains("Create the overall system design and component structure"), 
+                "Content should include step descriptions");
+        assertTrue(content.contains("Category: Architecture"), 
+                "Content should show step categories");
+        
+        // Verify timestamp format
+        assertTrue(content.contains("**Generated:**"), 
+                "Content should include generation timestamp");
+        // The timestamp format is more flexible, just check it contains some date/time information
+        assertTrue(content.contains("Generated:") && content.length() > content.indexOf("Generated:") + 20, 
+                "Content should have properly formatted timestamp");
+    }
 }

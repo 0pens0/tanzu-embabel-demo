@@ -1,0 +1,50 @@
+# Cloud Foundry specific configuration
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /
+
+# Spring Boot Actuator configuration for Cloud Foundry
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+
+# Logging configuration for cloud environment
+logging:
+  level:
+    com.embabel: INFO
+    org.springframework: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Application configuration
+spring:
+  application:
+    name: tanzu-embabel-demo
+  
+  # Static resource configuration
+  web:
+    resources:
+      static-locations: classpath:/static/
+      cache:
+        period: 3600
+
+# Embabel configuration for cloud environment with GenAI service
+embabel:
+  models:
+    default-llm: genai-chat
+  agent:
+    platform:
+      ranking:
+        llm: genai-chat
+
+# Task breakdown agent configuration
+task:
+  maxSteps: 8
+  maxStepDescriptionLength: 150

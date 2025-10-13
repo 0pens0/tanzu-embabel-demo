@@ -1,0 +1,53 @@
+# Default application configuration
+server:
+  port: 8080
+
+# Spring Boot Actuator configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging configuration
+logging:
+  level:
+    com.embabel: DEBUG
+    org.springframework: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Application configuration
+spring:
+  application:
+    name: tanzu-embabel-demo
+  
+  # Static resource configuration
+  web:
+    resources:
+      static-locations: classpath:/static/
+      cache:
+        period: 0  # Disable caching in development
+
+# Embabel configuration
+embabel:
+  models:
+    default-llm: gpt-4o-mini
+  agent:
+    platform:
+      ranking:
+        llm: gpt-4o-mini
+
+# Task breakdown agent configuration
+task:
+  maxSteps: 8
+  maxStepDescriptionLength: 150
+
+# CORS configuration for development
+cors:
+  allowed-origins: "*"
+  allowed-methods: "*"
+  allowed-headers: "*"

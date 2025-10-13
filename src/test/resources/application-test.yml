@@ -1,0 +1,62 @@
+# Test configuration for Embabel demo
+server:
+  port: 0  # Random port for tests
+
+# Spring Boot Actuator configuration for tests
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Logging configuration for tests
+logging:
+  level:
+    com.embabel: DEBUG
+    org.springframework: INFO
+    org.springframework.test: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Application configuration
+spring:
+  application:
+    name: tanzu-embabel-demo-test
+  
+  # Disable caching for tests
+  web:
+    resources:
+      cache:
+        period: 0
+  
+  # Disable Spring Shell for web application tests
+  shell:
+    interactive:
+      enabled: false
+    noninteractive:
+      enabled: false
+
+# Embabel test configuration - use fake LLM for testing
+embabel:
+  models:
+    default-llm: fake-llm
+  agent:
+    platform:
+      ranking:
+        llm: fake-llm
+  test:
+    enabled: true
+
+# Task breakdown agent configuration for tests
+task:
+  maxSteps: 5
+  maxStepDescriptionLength: 100
+
+# CORS configuration for tests
+cors:
+  allowed-origins: "*"
+  allowed-methods: "*"
+  allowed-headers: "*"
