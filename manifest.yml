@@ -1,17 +1,17 @@
 ---
 applications:
-- name: tanzu-embabel-demo
+- name: embabel-demo
   memory: 1G
   instances: 1
   buildpacks:
-    - java_buildpack
-  path: target/tanzu-embabel-demo-0.1.0-SNAPSHOT.jar
+    - java_buildpack_offline
+  path: target/tanzu-embabel-demo-genai-0.1.0-SNAPSHOT.jar
   env:
     SPRING_PROFILES_ACTIVE: cloud
     JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 21.+ } }'
     JBP_CONFIG_JAVA_OPTS: '{ java_opts: "-XX:ReservedCodeCacheSize=128M -XX:MaxDirectMemorySize=256M" }'
   services:
-    - embabel-genai
+    - chatgpt5
   health-check-type: http
   health-check-http-endpoint: /api/health
   timeout: 180

@@ -35,9 +35,9 @@ class EmbabelDemo {
             tasks.forEach(task => {
                 const button = document.createElement('button');
                 button.className = 'sample-task bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm transition-colors';
-                button.textContent = task;
+                button.textContent = task.title;
                 button.addEventListener('click', () => {
-                    this.taskInput.value = task;
+                    this.taskInput.value = task.title;
                     this.taskInput.focus();
                 });
                 this.sampleTasks.appendChild(button);
@@ -60,7 +60,7 @@ class EmbabelDemo {
         this.showProgress();
 
         try {
-            const response = await fetch('/api/breakdown-task', {
+            const response = await fetch('/api/task-breakdown', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

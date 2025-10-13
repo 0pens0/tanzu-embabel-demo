@@ -1,0 +1,143 @@
+---
+description: Project guardrails for changes in this repo
+alwaysApply: true
+---
+
+# Project Development Rules
+
+## 1. Branch Management
+- **ALWAYS** create a new branch for any code changes (e.g., `feature/new-feature`, `bugfix/issue-123`)
+- **NEVER** modify the main branch unless explicitly requested by the user
+- Use descriptive branch names following conventional patterns:
+  - `feature/description` for new features
+  - `bugfix/issue-number` for bug fixes
+  - `hotfix/critical-issue` for urgent fixes
+- When asked to check for issues, check GitHub issues in the repo unless specifically asked to check code issues
+- Clean up feature branches after merging to main
+
+## 2. Documentation & Release Management
+- **MANDATORY**: Document all code changes in commit messages and/or README updates
+- **MANDATORY**: Create release notes documenting what changed, why, and any breaking changes
+- Update version numbers following semantic versioning (major.minor.patch):
+  - Current version: 0.1.0 - increment appropriately
+  - 0.1.1 for patches, 0.2.0 for features, 1.0.0 for breaking changes
+- Use conventional commit format: `type(scope): description`
+  - Types: feat, fix, docs, style, refactor, test, chore
+  - Examples: `feat(agent): add TaskBreakdownAgent with AI planning`, `fix(api): resolve task breakdown endpoint`, `docs(demo): add comprehensive walkthrough guide`
+
+## 3. Version & Deployment Management
+- **ALWAYS** increment the JAR file version in `pom.xml` when creating new releases
+- **ALWAYS** update the Cloud Foundry manifest (`manifest.yml`) path to reflect the new JAR version
+- Ensure the manifest service bindings match the application requirements (currently: GenAI service for AI capabilities)
+- Update any environment-specific configurations when deploying to different spaces
+- Document deployment changes in commit messages
+
+## 4. Testing Strategy
+- **ALWAYS** use Cloud Foundry platform for testing new features/changes
+- Create sandbox environments using new spaces with descriptive names:
+  - Format: `feature-name-sandbox` or `bugfix-issue-sandbox`
+- Always create a random route for the sandbox or change the route to reflect the branch name
+- Create only the services needed for the application to startup:
+  - GenAI service for AI agent capabilities (primary requirement)
+  - SSO service only when authentication features are being tested
+  - PostgreSQL only when database features are being tested
+- Bind all required services to the test space
+- If no organization is specified, ask the user or create one with a descriptive name
+- Clean up test spaces after validation unless user requests otherwise
+- Test both backend (Spring Boot) and frontend (HTML/JavaScript) components
+- Document test results and share in Slack channel #ai-tool-chat
+
+## 5. Tool Usage Priority
+- **PRIMARY**: Use MCP servers and available tools for all operations
+- **FALLBACK**: Only use CLI when MCP tools are insufficient or unavailable
+- **TRANSPARENCY**: Always indicate when CLI fallback is necessary and explain why
+- Prefer MCP tools for:
+  - Cloud Foundry operations (spaces, services, deployments)
+  - GitHub operations (issues, PRs, commits)
+  - File system operations
+  - Code analysis and searching
+
+## 6. Code Quality Standards
+- Follow Spring Boot best practices and conventions
+- Maintain clean, well-documented Java code with proper Javadoc
+- Ensure all changes are properly tested before deployment
+- Use meaningful commit messages following conventional commit format
+- Follow project-specific coding style:
+  - 4-space indentation
+  - Constructor injection over field injection
+  - Proper exception handling
+  - Use of Spring Boot annotations correctly
+  - Embabel framework best practices (@Agent, @Action, @AchievesGoal annotations)
+- Write unit tests for new functionality
+- Ensure code compiles without warnings
+
+## 7. Project-Specific Guidelines
+
+### Frontend (HTML/JavaScript)
+- Static HTML/CSS/JavaScript in `src/main/resources/static`
+- Use vanilla JavaScript with modern ES6+ features
+- Follow responsive design principles with Tailwind CSS
+- Implement proper error handling and loading states
+- Use smooth animations and transitions for better UX
+- Ensure cross-browser compatibility
+
+### Backend (Spring Boot + Embabel)
+- Spring Boot services grouped by feature in `src/main/java/com/embabel/demo`
+- Use constructor injection for dependencies
+- Implement proper REST API design patterns
+- Use Embabel framework for AI agent development (@Agent, @Action, @AchievesGoal)
+- Implement proper error handling with @ControllerAdvice
+- Use Spring Security for authentication when needed
+- Follow Embabel domain modeling with Java records
+
+### Build Process
+- Use `mvn clean package` for full build
+- Use `mvn spring-boot:run` for local development
+- For GenAI demo: Use `mvn clean package -f pom-genai.xml` for simplified build
+- Run tests before deployment: `mvn test`
+- Static frontend assets are included in JAR build
+
+### Configuration
+- Update `application.yml` and profile-specific overrides in `src/main/resources`
+- Use environment-specific configurations for different deployment targets
+- Embabel configuration in `application-cloud.yml` for GenAI service integration
+- Test configuration in `src/test/resources/application-test.yml`
+- Document configuration changes
+
+### Deployment
+- Update `manifest.yml` and helper scripts when env variables or services change
+- Ensure proper service bindings for each environment
+- Test deployment in sandbox before production
+
+## 8. Communication & Collaboration
+- **MANDATORY**: Share all changes in the app in Slack channel #ai-tool-chat
+- When testing, share the changes and the app route from the sandbox
+- Document any issues or blockers encountered
+- Provide clear status updates on feature development
+- Include screenshots or demo links when appropriate
+
+## 9. Error Handling & Troubleshooting
+- Always check application logs when issues occur
+- Use proper error messages and logging levels
+- Implement fallback mechanisms for external service failures
+- Document common issues and their solutions
+- Test error scenarios in sandbox environments
+
+## 10. Embabel Framework Specific Guidelines
+- **Agent Development**: Use `@Agent` annotation for agent classes
+- **Action Methods**: Use `@Action` for methods that perform specific tasks
+- **Goal Achievement**: Use `@AchievesGoal` for final objectives
+- **Domain Models**: Use Java records for structured data (Task, Step, ExecutionPlan)
+- **Personas**: Define different AI personalities for various tasks
+- **LLM Integration**: Configure proper LLM models and temperature settings
+- **Testing**: Use `FakeOperationContext` and `FakePromptRunner` for unit tests
+- **Demo Features**: Maintain interactive demo with sample tasks and real-time execution traces
+
+## 11. Security & Best Practices
+- Never commit sensitive information (API keys, passwords, etc.)
+- Use environment variables for configuration
+- Implement proper input validation
+- Follow OWASP security guidelines
+- Use HTTPS for all external communications
+- Implement proper session management
+- Secure GenAI service credentials through Cloud Foundry service bindings
