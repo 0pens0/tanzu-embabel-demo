@@ -51,6 +51,28 @@ class EmbabelDemo {
                 this.stepManager.goToStep(4);
             });
         }
+        
+        const viewDetailedPlanBtn = document.getElementById('view-detailed-plan');
+        if (viewDetailedPlanBtn) {
+            viewDetailedPlanBtn.addEventListener('click', () => {
+                this.showDetailedPlan();
+            });
+        }
+        
+        const backToResultsBtn = document.getElementById('back-to-results');
+        if (backToResultsBtn) {
+            backToResultsBtn.addEventListener('click', () => {
+                this.stepManager.goToStep(3);
+            });
+        }
+        
+        // Implementation details buttons (delegated event listener)
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('implementation-details-btn')) {
+                const actionName = e.target.dataset.action;
+                this.showImplementationDetails(actionName);
+            }
+        });
     }
 
     async loadScenarios() {
@@ -229,8 +251,14 @@ class EmbabelDemo {
                                 <span><strong>Model:</strong> ${action.reasoning?.llmModel || 'gpt-4o-mini'}</span>
                                 <span><strong>Temp:</strong> ${action.reasoning?.temperature || '0.7'}</span>
                             </div>
-                            <div class="duration text-xs text-gray-500">
-                                <strong>Duration:</strong> ${action.duration || '1.5s'}
+                            <div class="flex items-center space-x-2">
+                                <div class="duration text-xs text-gray-500">
+                                    <strong>Duration:</strong> ${action.duration || '1.5s'}
+                                </div>
+                                <button class="implementation-details-btn text-xs bg-blue-100 hover:bg-blue-200 text-blue-800 px-2 py-1 rounded transition-colors" 
+                                        data-action="${action.actionName}">
+                                    View Details
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -385,6 +413,276 @@ class EmbabelDemo {
 
     delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async showImplementationDetails(actionName) {
+        try {
+            const response = await fetch(`/api/action-details/${actionName}`);
+            const details = await response.json();
+            this.createImplementationModal(details);
+        } catch (error) {
+            console.error('Failed to load implementation details:', error);
+            this.showError('Failed to load implementation details');
+        }
+    }
+
+    createImplementationModal(details) {
+        // Remove existing modal
+        const existingModal = document.getElementById('implementation-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const modal = document.createElement('div');
+        modal.id = 'implementation-modal';
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+        modal.innerHTML = `
+            <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Implementation Details: ${this.formatActionName(details.name)}</h2>
+                        <button class="close-modal text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Left Column: Action Information -->
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h3 class="font-semibold text-blue-900 mb-2">Action Information</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div><strong>Name:</strong> ${details.name}</div>
+                                    <div><strong>Description:</strong> ${details.description}</div>
+                                    <div><strong>Purpose:</strong> ${details.purpose}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h3 class="font-semibold text-green-900 mb-2">AI Configuration</h3>
+                                <div class="space-y-2 text-sm">
+                                    <div><strong>Persona:</strong> ${details.persona}</div>
+                                    <div><strong>LLM Model:</strong> ${details.llmModel}</div>
+                                    <div><strong>Temperature:</strong> ${details.temperature}</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Right Column: Code Example -->
+                        <div>
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h3 class="font-semibold text-gray-900 mb-3">Code Implementation</h3>
+                                <div class="bg-gray-900 rounded p-4 overflow-x-auto">
+                                    <pre><code class="language-java">${details.codeExample}</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 flex justify-end">
+                        <button class="close-modal bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Add event listeners for closing modal
+        const closeButtons = modal.querySelectorAll('.close-modal');
+        closeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                modal.remove();
+            });
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+
+        // Re-highlight code
+        if (window.hljs) {
+            hljs.highlightAll();
+        }
+    }
+
+    showDetailedPlan() {
+        // Hide all steps and show detailed plan
+        this.stepManager.hideAllSteps();
+        const detailedPlanStep = document.getElementById('step-detailed-plan');
+        if (detailedPlanStep) {
+            detailedPlanStep.classList.remove('hidden');
+            detailedPlanStep.classList.add('active');
+        }
+        
+        // Load detailed plan content
+        this.loadDetailedPlanContent();
+    }
+
+    loadDetailedPlanContent() {
+        if (!this.executionData || !this.executionData.finalResult) return;
+
+        const executionPlan = this.executionData.finalResult;
+        
+        // Load plan overview
+        this.loadPlanOverview(executionPlan);
+        
+        // Load detailed timeline
+        this.loadDetailedTimeline(executionPlan);
+        
+        // Load step dependencies
+        this.loadStepDependencies(executionPlan);
+        
+        // Load resource requirements
+        this.loadResourceRequirements(executionPlan);
+    }
+
+    loadPlanOverview(executionPlan) {
+        const planOverview = document.getElementById('plan-overview');
+        if (!planOverview) return;
+
+        planOverview.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-blue-900 mb-2">📋 Plan Summary</h4>
+                    <p class="text-blue-800 text-sm">${executionPlan.summary}</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-green-900 mb-2">⏱️ Estimated Duration</h4>
+                    <p class="text-green-800 text-lg font-semibold">${executionPlan.estimatedTime}</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-purple-900 mb-2">📝 Total Steps</h4>
+                    <p class="text-purple-800 text-lg font-semibold">${executionPlan.steps.length} Steps</p>
+                </div>
+            </div>
+        `;
+    }
+
+    loadDetailedTimeline(executionPlan) {
+        const timelineContainer = document.getElementById('timeline-container');
+        if (!timelineContainer) return;
+
+        const timelineHtml = executionPlan.steps.map((step, index) => {
+            const estimatedDays = this.estimateStepDuration(step, executionPlan.steps.length);
+            const startDay = index === 0 ? 1 : index * estimatedDays + 1;
+            const endDay = startDay + estimatedDays - 1;
+            
+            return `
+                <div class="timeline-item flex items-start mb-6">
+                    <div class="timeline-marker flex-shrink-0 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-semibold text-sm mr-4">
+                        ${step.priority}
+                    </div>
+                    <div class="timeline-content flex-1 bg-gray-50 p-4 rounded-lg">
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-semibold text-gray-900">${step.description}</h4>
+                            <span class="text-sm text-gray-500">Day ${startDay}-${endDay}</span>
+                        </div>
+                        <div class="flex items-center space-x-4 text-sm text-gray-600">
+                            <span><strong>Priority:</strong> ${step.priority}</span>
+                            <span><strong>Duration:</strong> ${estimatedDays} day${estimatedDays > 1 ? 's' : ''}</span>
+                            <span><strong>Status:</strong> <span class="text-yellow-600">Pending</span></span>
+                        </div>
+                        <div class="mt-2">
+                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                <div class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        timelineContainer.innerHTML = `
+            <div class="timeline">
+                ${timelineHtml}
+            </div>
+        `;
+    }
+
+    loadStepDependencies(executionPlan) {
+        const dependenciesContainer = document.getElementById('dependencies-container');
+        if (!dependenciesContainer) return;
+
+        const dependenciesHtml = executionPlan.steps.map((step, index) => {
+            const dependencies = this.getStepDependencies(step, index, executionPlan.steps);
+            
+            return `
+                <div class="dependency-item bg-white border border-gray-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h4 class="font-semibold text-gray-900">Step ${step.priority}: ${step.description}</h4>
+                        <span class="text-sm text-gray-500">Priority ${step.priority}</span>
+                    </div>
+                    <div class="space-y-2">
+                        <div><strong>Dependencies:</strong></div>
+                        ${dependencies.length > 0 ? 
+                            dependencies.map(dep => `<div class="text-sm text-gray-600 ml-4">• ${dep}</div>`).join('') :
+                            '<div class="text-sm text-gray-500 ml-4">No dependencies - can start immediately</div>'
+                        }
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+        dependenciesContainer.innerHTML = dependenciesHtml;
+    }
+
+    loadResourceRequirements(executionPlan) {
+        const resourcesContainer = document.getElementById('resources-container');
+        if (!resourcesContainer) return;
+
+        const resources = this.estimateResourceRequirements(executionPlan);
+
+        resourcesContainer.innerHTML = `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-yellow-900 mb-3">👥 Human Resources</h4>
+                    <div class="space-y-2 text-sm">
+                        <div><strong>Project Manager:</strong> 1 person</div>
+                        <div><strong>Team Members:</strong> ${resources.teamSize} people</div>
+                        <div><strong>Total Effort:</strong> ${resources.totalEffort} person-days</div>
+                    </div>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-indigo-900 mb-3">🛠️ Tools & Technology</h4>
+                    <div class="space-y-2 text-sm">
+                        <div><strong>Primary Tools:</strong> ${resources.primaryTools.join(', ')}</div>
+                        <div><strong>Budget Estimate:</strong> ${resources.budgetEstimate}</div>
+                        <div><strong>Risk Level:</strong> <span class="text-${resources.riskLevel === 'Low' ? 'green' : resources.riskLevel === 'Medium' ? 'yellow' : 'red'}-600">${resources.riskLevel}</span></div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    estimateStepDuration(step, totalSteps) {
+        // Simple estimation based on step priority and total steps
+        const baseDuration = Math.max(1, Math.ceil(14 / totalSteps)); // Assume 2 weeks total
+        return Math.max(1, baseDuration - (step.priority - 1) * 0.5);
+    }
+
+    getStepDependencies(step, index, allSteps) {
+        // Simple dependency logic - higher priority steps depend on lower priority ones
+        const dependencies = [];
+        if (index > 0) {
+            dependencies.push(`Step ${allSteps[index - 1].priority}: ${allSteps[index - 1].description}`);
+        }
+        return dependencies;
+    }
+
+    estimateResourceRequirements(executionPlan) {
+        const stepCount = executionPlan.steps.length;
+        
+        return {
+            teamSize: Math.max(2, Math.ceil(stepCount / 3)),
+            totalEffort: stepCount * 2, // 2 person-days per step
+            primaryTools: ['Project Management Software', 'Communication Tools', 'Documentation Platform'],
+            budgetEstimate: `$${stepCount * 1000}-${stepCount * 2000}`,
+            riskLevel: stepCount > 8 ? 'Medium' : 'Low'
+        };
     }
 
     // Results display methods
