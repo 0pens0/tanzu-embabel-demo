@@ -6,13 +6,18 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ContentDisposition;
 import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.embabel.demo.service.CodeGenerationService;
+import com.embabel.demo.util.ZipUtility;
 
 /**
  * GenAI Demo Controller for Cloud Foundry deployment.
@@ -26,9 +31,12 @@ public class GenAiDemoController {
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final Environment environment;
+    private final CodeGenerationService codeGenerationService;
     
-    public GenAiDemoController(Environment environment) {
+    @Autowired
+    public GenAiDemoController(Environment environment, CodeGenerationService codeGenerationService) {
         this.environment = environment;
+        this.codeGenerationService = codeGenerationService;
     }
 
     @GetMapping("/health")
@@ -71,7 +79,7 @@ public class GenAiDemoController {
         
         try {
             // Use GenAI service to break down the task
-            Map<String, Object> aiResponse = callGenAiService(taskDescription);
+            Map<String, Object> aiResponse = callGenAiService(taskDescription, "BREAK_DOWN_STEPS");
             
             // Create execution trace similar to Embabel agent
             Map<String, Object> executionTrace = createExecutionTrace(taskDescription, aiResponse);
@@ -83,28 +91,92 @@ public class GenAiDemoController {
         }
     }
 
+    @PostMapping("/generate-code")
+    public ResponseEntity<Map<String, Object>> generateCode(@RequestBody Map<String, String> request) {
+        String taskDescription = request.get("taskDescription");
+        
+        try {
+            // Step 1: Analyze requirements with detailed reasoning
+            Map<String, Object> requirements = analyzeApplicationRequirements(taskDescription);
+            
+            // Step 2: Design architecture
+            Map<String, Object> architecture = defineApplicationArchitecture(requirements);
+            
+            // Step 3: Break down into implementation steps
+            List<Map<String, Object>> steps = breakDownIntoImplementationSteps(architecture);
+            
+            // Step 4: Generate project structure
+            Map<String, Object> projectStructure = generateProjectStructure(architecture);
+            
+            // Step 5: Generate actual code using GenAI for each file
+            Map<String, String> generatedFiles = codeGenerationService.generateSpringBootProject(
+                requirements, architecture, steps
+            );
+            
+            // Return trace with code preview (not full files, just summary)
+            return ResponseEntity.ok(createCodeGenerationTrace(
+                taskDescription, requirements, architecture, steps, generatedFiles
+            ));
+        } catch (Exception e) {
+            System.err.println("Error generating code: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok(createMockCodeGenerationTrace(taskDescription));
+        }
+    }
+
+    @PostMapping("/download-code")
+    public ResponseEntity<byte[]> downloadCode(@RequestBody Map<String, Object> codeData) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, String> files = (Map<String, String>) codeData.get("files");
+            String projectName = (String) codeData.get("projectName");
+            
+            if (files == null || projectName == null) {
+                return ResponseEntity.badRequest().build();
+            }
+            
+            byte[] zipBytes = ZipUtility.createProjectZip(files, ZipUtility.sanitizeProjectName(projectName));
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentDisposition(
+                ContentDisposition.attachment()
+                    .filename(ZipUtility.sanitizeProjectName(projectName) + ".zip")
+                    .build()
+            );
+            
+            return ResponseEntity.ok()
+                .headers(headers)
+                .body(zipBytes);
+        } catch (Exception e) {
+            System.err.println("Error creating ZIP file: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/sample-tasks")
     public ResponseEntity<List<Map<String, String>>> getSampleTasks() {
         return ResponseEntity.ok(List.of(
             Map.of(
-                "title", "Create a podcast series about sustainable technology with 10 episodes",
-                "description", "Plan and produce a podcast series covering sustainable technology innovations",
-                "category", "Content Creation"
+                "title", "Create a REST API for a blog platform with CRUD operations",
+                "description", "Spring Boot REST API with posts, comments, and user management",
+                "category", "Web Application"
             ),
             Map.of(
-                "title", "Develop a mobile app for tracking personal fitness goals with social features",
-                "description", "Build a fitness tracking app with social sharing and community features",
-                "category", "Mobile Development"
+                "title", "Build a todo list web app with Spring Boot backend",
+                "description", "Full-stack todo application with REST API and HTML frontend",
+                "category", "Web Application"
             ),
             Map.of(
-                "title", "Plan a marketing campaign for launching a new eco-friendly product line",
-                "description", "Create a comprehensive marketing strategy for sustainable product launch",
-                "category", "Business Strategy"
+                "title", "Create a product catalog API with search functionality",
+                "description", "E-commerce product catalog with filtering, pagination, and search",
+                "category", "Web Application"
             ),
             Map.of(
-                "title", "Organize a company retreat for 50 employees with team building activities",
-                "description", "Plan logistics, activities, and budget for a comprehensive company retreat",
-                "category", "Event Planning"
+                "title", "Build a user management system with authentication",
+                "description", "Spring Boot application with user registration, login, and profile management",
+                "category", "Web Application"
             )
         ));
     }
@@ -113,64 +185,68 @@ public class GenAiDemoController {
     public ResponseEntity<List<Map<String, Object>>> getScenarios() {
         return ResponseEntity.ok(List.of(
             Map.of(
-                "id", "podcast",
-                "title", "Create a podcast series about sustainable technology with 10 episodes",
-                "description", "Plan and produce a podcast series covering sustainable technology innovations",
-                "category", "Content Creation",
-                "complexity", "Complex",
-                "estimatedSteps", 8,
-                "expectedDuration", "3-4 weeks",
-                "highlights", List.of(
-                    "Uses ANALYST persona for research",
-                    "Demonstrates multi-step breakdown",
-                    "Shows dependency prioritization"
-                ),
-                "expectedActions", List.of("analyzeTask", "breakDownIntoSteps", "prioritizeSteps", "createExecutionPlan")
-            ),
-            Map.of(
-                "id", "mobile-app",
-                "title", "Develop a mobile app for tracking personal fitness goals with social features",
-                "description", "Build a fitness tracking app with social sharing and community features",
-                "category", "Mobile Development",
-                "complexity", "Very Complex",
-                "estimatedSteps", 12,
-                "expectedDuration", "4-6 weeks",
-                "highlights", List.of(
-                    "Shows technical architecture planning",
-                    "Demonstrates user experience considerations",
-                    "Includes integration complexity"
-                ),
-                "expectedActions", List.of("analyzeTask", "breakDownIntoSteps", "prioritizeSteps", "createExecutionPlan")
-            ),
-            Map.of(
-                "id", "marketing-campaign",
-                "title", "Plan a marketing campaign for launching a new eco-friendly product line",
-                "description", "Create a comprehensive marketing strategy for sustainable product launch",
-                "category", "Business Strategy",
-                "complexity", "Complex",
-                "estimatedSteps", 10,
-                "expectedDuration", "2-3 weeks",
-                "highlights", List.of(
-                    "Shows strategic thinking process",
-                    "Demonstrates market analysis",
-                    "Includes multi-channel planning"
-                ),
-                "expectedActions", List.of("analyzeTask", "breakDownIntoSteps", "prioritizeSteps", "createExecutionPlan")
-            ),
-            Map.of(
-                "id", "company-retreat",
-                "title", "Organize a company retreat for 50 employees with team building activities",
-                "description", "Plan logistics, activities, and budget for a comprehensive company retreat",
-                "category", "Event Planning",
+                "id", "blog-api",
+                "title", "Create a REST API for a blog platform with CRUD operations",
+                "description", "Spring Boot REST API with posts, comments, and user management",
+                "category", "Web Application",
                 "complexity", "Moderate",
-                "estimatedSteps", 6,
-                "expectedDuration", "2-3 weeks",
+                "estimatedSteps", 8,
+                "expectedDuration", "2-3 days",
                 "highlights", List.of(
-                    "Shows logistical planning",
-                    "Demonstrates budget considerations",
-                    "Includes activity coordination"
+                    "Spring Boot REST API development",
+                    "JPA entities and repositories",
+                    "CRUD operations implementation",
+                    "JSON API responses"
                 ),
-                "expectedActions", List.of("analyzeTask", "breakDownIntoSteps", "prioritizeSteps", "createExecutionPlan")
+                "expectedActions", List.of("analyzeApplicationRequirements", "defineApplicationArchitecture", "breakDownIntoImplementationSteps", "generateProjectStructure", "generateSourceCode")
+            ),
+            Map.of(
+                "id", "todo-app",
+                "title", "Build a todo list web app with Spring Boot backend",
+                "description", "Full-stack todo application with REST API and HTML frontend",
+                "category", "Web Application",
+                "complexity", "Moderate",
+                "estimatedSteps", 10,
+                "expectedDuration", "3-4 days",
+                "highlights", List.of(
+                    "Full-stack Spring Boot application",
+                    "REST API with frontend integration",
+                    "Database persistence",
+                    "Modern web UI"
+                ),
+                "expectedActions", List.of("analyzeApplicationRequirements", "defineApplicationArchitecture", "breakDownIntoImplementationSteps", "generateProjectStructure", "generateSourceCode")
+            ),
+            Map.of(
+                "id", "product-catalog",
+                "title", "Create a product catalog API with search functionality",
+                "description", "E-commerce product catalog with filtering, pagination, and search",
+                "category", "Web Application",
+                "complexity", "Complex",
+                "estimatedSteps", 12,
+                "expectedDuration", "4-5 days",
+                "highlights", List.of(
+                    "Advanced REST API features",
+                    "Search and filtering capabilities",
+                    "Pagination implementation",
+                    "Database relationships"
+                ),
+                "expectedActions", List.of("analyzeApplicationRequirements", "defineApplicationArchitecture", "breakDownIntoImplementationSteps", "generateProjectStructure", "generateSourceCode")
+            ),
+            Map.of(
+                "id", "user-management",
+                "title", "Build a user management system with authentication",
+                "description", "Spring Boot application with user registration, login, and profile management",
+                "category", "Web Application",
+                "complexity", "Complex",
+                "estimatedSteps", 14,
+                "expectedDuration", "5-6 days",
+                "highlights", List.of(
+                    "User authentication system",
+                    "Security implementation",
+                    "Profile management",
+                    "Session handling"
+                ),
+                "expectedActions", List.of("analyzeApplicationRequirements", "defineApplicationArchitecture", "breakDownIntoImplementationSteps", "generateProjectStructure", "generateSourceCode")
             )
         ));
     }
@@ -178,41 +254,50 @@ public class GenAiDemoController {
     @GetMapping("/action-details/{actionName}")
     public ResponseEntity<Map<String, Object>> getActionDetails(@PathVariable String actionName) {
         Map<String, Object> details = switch (actionName) {
-            case "analyzeTask" -> Map.of(
-                "name", "analyzeTask",
-                "description", "Analyzes task complexity and requirements",
-                "persona", "ANALYST",
+            case "analyzeApplicationRequirements" -> Map.of(
+                "name", "analyzeApplicationRequirements",
+                "description", "Analyzes web application requirements and technical specifications",
+                "persona", "SOLUTION_ARCHITECT",
                 "llmModel", "gpt-4o-mini",
                 "temperature", 0.3,
-                "purpose", "Determines task complexity and identifies key requirements",
-                "codeExample", "@Action\nTask analyzeTask(UserInput userInput, OperationContext context) {\n    return context.ai()\n        .withLlm(LlmOptions.withAutoLlm().withTemperature(0.3))\n        .withPromptContributor(ANALYST)\n        .createObject(\"Analyze this task...\", Task.class);\n}"
+                "purpose", "Extracts technical requirements, identifies entities, API endpoints, and architecture needs",
+                "codeExample", "@Action\nRequirements analyzeApplicationRequirements(String taskDescription, OperationContext context) {\n    return context.ai()\n        .withLlm(LlmOptions.withAutoLlm().withTemperature(0.3))\n        .withPromptContributor(SOLUTION_ARCHITECT)\n        .createObject(\"Analyze web app requirements...\", Requirements.class);\n}"
             );
-            case "breakDownIntoSteps" -> Map.of(
-                "name", "breakDownIntoSteps",
-                "description", "Breaks down task into actionable steps",
-                "persona", "ANALYST",
-                "llmModel", "gpt-4o-mini",
-                "temperature", 0.4,
-                "purpose", "Decomposes complex tasks into manageable, sequential steps",
-                "codeExample", "@Action\nList<Step> breakDownIntoSteps(Task task, OperationContext context) {\n    return context.ai()\n        .withLlm(LlmOptions.withAutoLlm().withTemperature(0.4))\n        .withPromptContributor(ANALYST)\n        .createObject(\"Break down into steps...\", List.class);\n}"
-            );
-            case "prioritizeSteps" -> Map.of(
-                "name", "prioritizeSteps",
-                "description", "Prioritizes steps based on dependencies",
-                "persona", "PRIORITIZER",
+            case "defineApplicationArchitecture" -> Map.of(
+                "name", "defineApplicationArchitecture",
+                "description", "Defines Spring Boot application architecture and technology stack",
+                "persona", "SOLUTION_ARCHITECT",
                 "llmModel", "gpt-4o-mini",
                 "temperature", 0.2,
-                "purpose", "Orders steps by dependencies and critical path analysis",
-                "codeExample", "@Action\nList<Step> prioritizeSteps(List<Step> steps, OperationContext context) {\n    return context.ai()\n        .withLlm(LlmOptions.withAutoLlm().withTemperature(0.2))\n        .withPromptContributor(PRIORITIZER)\n        .createObject(\"Prioritize these steps...\", List.class);\n}"
+                "purpose", "Determines project structure, dependencies, and architectural patterns",
+                "codeExample", "@Action\nArchitecture defineApplicationArchitecture(Requirements requirements, OperationContext context) {\n    return context.ai()\n        .withLlm(LlmOptions.withAutoLlm().withTemperature(0.2))\n        .withPromptContributor(SOLUTION_ARCHITECT)\n        .createObject(\"Define architecture...\", Architecture.class);\n}"
             );
-            case "createExecutionPlan" -> Map.of(
-                "name", "createExecutionPlan",
-                "description", "Creates final execution plan with time estimates",
-                "persona", "ANALYST",
+            case "breakDownIntoImplementationSteps" -> Map.of(
+                "name", "breakDownIntoImplementationSteps",
+                "description", "Breaks down architecture into detailed implementation steps",
+                "persona", "SOFTWARE_ENGINEER",
+                "llmModel", "gpt-4o-mini",
+                "temperature", 0.4,
+                "purpose", "Creates specific, actionable implementation steps with code generation tasks",
+                "codeExample", "@Action\nList<ImplementationStep> breakDownIntoImplementationSteps(Architecture architecture, OperationContext context) {\n    return context.ai()\n        .withLlm(LlmOptions.withAutoLlm().withTemperature(0.4))\n        .withPromptContributor(SOFTWARE_ENGINEER)\n        .createObject(\"Break down implementation...\", List.class);\n}"
+            );
+            case "generateProjectStructure" -> Map.of(
+                "name", "generateProjectStructure",
+                "description", "Generates Maven project structure and configuration files",
+                "persona", "DEVOPS_ENGINEER",
+                "llmModel", "gpt-4o-mini",
+                "temperature", 0.1,
+                "purpose", "Creates project structure, pom.xml, and configuration files",
+                "codeExample", "@Action\nProjectStructure generateProjectStructure(Architecture architecture, OperationContext context) {\n    return context.ai()\n        .withLlm(LlmOptions.withAutoLlm().withTemperature(0.1))\n        .withPromptContributor(DEVOPS_ENGINEER)\n        .createObject(\"Generate project structure...\", ProjectStructure.class);\n}"
+            );
+            case "generateSourceCode" -> Map.of(
+                "name", "generateSourceCode",
+                "description", "Generates actual Java/Spring Boot code, HTML, CSS, and JavaScript files",
+                "persona", "SENIOR_DEVELOPER",
                 "llmModel", "gpt-4o-mini",
                 "temperature", 0.3,
-                "purpose", "Synthesizes all components into a comprehensive execution plan",
-                "codeExample", "@AchievesGoal(description = \"Execution plan created\")\n@Action\nExecutionPlan createExecutionPlan(Task task, List<Step> steps) {\n    return new ExecutionPlan(task, steps, summary, totalTime);\n}"
+                "purpose", "Creates production-ready Spring Boot controllers, services, entities, and frontend files",
+                "codeExample", "@AchievesGoal(description = \"Complete Spring Boot application generated\")\n@Action\nMap<String, String> generateSourceCode(ProjectStructure structure, List<ImplementationStep> steps) {\n    return codeGenerationService.generateSpringBootProject(structure, steps);\n}"
             );
             default -> Map.of(
                 "name", actionName,
@@ -270,7 +355,39 @@ public class GenAiDemoController {
         ));
     }
 
+    // New agent action methods for code generation
+    
+    private Map<String, Object> analyzeApplicationRequirements(String taskDescription) {
+        Map<String, Object> aiResponse = callGenAiService(taskDescription, "ANALYZE_REQUIREMENTS");
+        return aiResponse;
+    }
+    
+    private Map<String, Object> defineApplicationArchitecture(Map<String, Object> requirements) {
+        String requirementsJson = requirements.toString();
+        Map<String, Object> aiResponse = callGenAiService(requirementsJson, "DESIGN_ARCHITECTURE");
+        return aiResponse;
+    }
+    
+    private List<Map<String, Object>> breakDownIntoImplementationSteps(Map<String, Object> architecture) {
+        String architectureJson = architecture.toString();
+        Map<String, Object> aiResponse = callGenAiService(architectureJson, "BREAK_DOWN_STEPS");
+        
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> steps = (List<Map<String, Object>>) aiResponse.get("steps");
+        return steps != null ? steps : List.of();
+    }
+    
+    private Map<String, Object> generateProjectStructure(Map<String, Object> architecture) {
+        String architectureJson = architecture.toString();
+        Map<String, Object> aiResponse = callGenAiService(architectureJson, "GENERATE_PROJECT_STRUCTURE");
+        return aiResponse;
+    }
+
     private Map<String, Object> callGenAiService(String taskDescription) {
+        return callGenAiService(taskDescription, "BREAK_DOWN_STEPS");
+    }
+    
+    private Map<String, Object> callGenAiService(String taskDescription, String promptType) {
         try {
             // Get GenAI service credentials from environment
             String genAiBaseUrl = environment.getProperty("GENAI_BASE_URL");
@@ -281,29 +398,8 @@ public class GenAiDemoController {
                 return createMockAiResponse(taskDescription);
             }
             
-            // Create the prompt for task breakdown
-            String prompt = String.format("""
-                You are an expert project analyst. Break down the following task into specific, actionable steps.
-                
-                Task: %s
-                
-                Please provide a JSON response with the following structure:
-                {
-                    "analysis": "Brief analysis of the task complexity and requirements",
-                    "steps": [
-                        {"description": "Specific actionable step", "priority": 1},
-                        {"description": "Another specific step", "priority": 2}
-                    ],
-                    "summary": "Brief summary of the execution plan",
-                    "estimatedTime": "Realistic time estimate (e.g., '2-3 weeks', '1 month')"
-                }
-                
-                Make sure the steps are:
-                1. Specific and actionable
-                2. In logical order
-                3. Appropriate for the task complexity
-                4. Realistic in scope
-                """, taskDescription);
+            // Create the prompt based on prompt type
+            String prompt = buildPromptForType(taskDescription, promptType);
             
             // Prepare the request
             HttpHeaders headers = new HttpHeaders();
@@ -451,71 +547,95 @@ public class GenAiDemoController {
             "taskDescription", taskDescription,
             "actionSteps", List.of(
                 Map.of(
-                    "actionName", "analyzeTask",
+                    "actionName", "analyzeApplicationRequirements",
                     "stepNumber", 1,
-                    "description", "Analyzing task complexity and requirements",
+                    "description", "Analyzing web application requirements and technical specifications",
                     "reasoning", Map.of(
-                        "thought", "Analyzing task to determine complexity and scope. Evaluating requirements, constraints, and potential challenges.",
-                        "persona", "ANALYST",
+                        "thought", "Examining the task to identify: application type (REST API, full-stack, microservice), required entities and relationships, API endpoints needed, data persistence requirements, authentication needs, frontend requirements, and integration points.",
+                        "persona", "SOLUTION_ARCHITECT",
                         "llmModel", "gpt-4o-mini",
                         "temperature", 0.3,
-                        "why", "Using ANALYST persona with low temperature for accurate complexity assessment and detailed analysis"
+                        "why", "Using SOLUTION_ARCHITECT persona with low temperature for precise technical analysis and requirement extraction. This ensures we capture all necessary components for a production-ready Spring Boot application.",
+                        "considerations", List.of(
+                            "Spring Boot version compatibility",
+                            "Database choice (H2, PostgreSQL, MySQL)",
+                            "REST API design patterns",
+                            "Security requirements",
+                            "Frontend technology stack"
+                        )
                     ),
                     "input", taskDescription,
                     "output", aiResponse.get("analysis"),
-                    "duration", "1.5s",
+                    "duration", "2.5s",
                     "timestamp", Instant.now().minusSeconds(8).toString()
                 ),
                 Map.of(
-                    "actionName", "breakDownIntoSteps",
+                    "actionName", "defineApplicationArchitecture",
                     "stepNumber", 2,
-                    "description", "Breaking down task into actionable steps",
+                    "description", "Defining Spring Boot application architecture and technology stack",
                     "reasoning", Map.of(
-                        "thought", "Decomposing the analyzed task into specific, actionable steps. Considering dependencies and logical flow.",
-                        "persona", "ANALYST",
+                        "thought", "Designing the overall application architecture including: layered architecture (controllers, services, repositories), dependency management, configuration structure, database schema design, and integration patterns.",
+                        "persona", "SOLUTION_ARCHITECT",
                         "llmModel", "gpt-4o-mini",
-                        "temperature", 0.4,
-                        "why", "Using ANALYST persona with slightly higher temperature for creative step generation while maintaining structure"
+                        "temperature", 0.2,
+                        "why", "Using SOLUTION_ARCHITECT persona with very low temperature for consistent architectural decisions and adherence to Spring Boot best practices.",
+                        "considerations", List.of(
+                            "Spring Boot layered architecture",
+                            "Dependency injection patterns",
+                            "Database access patterns (JPA/Hibernate)",
+                            "Configuration management",
+                            "Error handling strategies"
+                        )
                     ),
                     "input", aiResponse.get("analysis"),
-                    "output", aiResponse.get("steps"),
+                    "output", aiResponse.get("architecture"),
                     "duration", "2.0s",
                     "timestamp", Instant.now().minusSeconds(6).toString()
                 ),
                 Map.of(
-                    "actionName", "prioritizeSteps",
+                    "actionName", "breakDownIntoImplementationSteps",
                     "stepNumber", 3,
-                    "description", "Prioritizing steps based on dependencies",
+                    "description", "Breaking down architecture into detailed implementation steps",
                     "reasoning", Map.of(
-                        "thought", "Evaluating step dependencies and critical path. Determining optimal execution order for efficiency.",
-                        "persona", "PRIORITIZER",
+                        "thought", "Creating specific, actionable implementation steps with clear dependencies. Each step includes code generation tasks, file creation requirements, and testing considerations.",
+                        "persona", "SOFTWARE_ENGINEER",
                         "llmModel", "gpt-4o-mini",
-                        "temperature", 0.2,
-                        "why", "Using PRIORITIZER persona with very low temperature for precise dependency analysis and logical ordering"
+                        "temperature", 0.4,
+                        "why", "Using SOFTWARE_ENGINEER persona with moderate temperature for practical implementation planning while maintaining technical accuracy.",
+                        "considerations", List.of(
+                            "Implementation order and dependencies",
+                            "Code generation requirements",
+                            "File structure and organization",
+                            "Testing and validation steps",
+                            "Documentation needs"
+                        )
                     ),
-                    "input", "List of steps",
-                    "output", "Prioritized execution plan",
-                    "duration", "0.8s",
+                    "input", aiResponse.get("architecture"),
+                    "output", aiResponse.get("steps"),
+                    "duration", "1.8s",
                     "timestamp", Instant.now().minusSeconds(4).toString()
                 ),
                 Map.of(
-                    "actionName", "createExecutionPlan",
+                    "actionName", "generateProjectStructure",
                     "stepNumber", 4,
-                    "description", "Creating final execution plan with time estimates",
+                    "description", "Generating Maven project structure and configuration files",
                     "reasoning", Map.of(
-                        "thought", "Assembling all components into a comprehensive execution plan. Adding time estimates and resource considerations.",
-                        "persona", "ANALYST",
+                        "thought", "Creating the complete project structure including Maven configuration (pom.xml), application properties, directory structure, and initial configuration files.",
+                        "persona", "DEVOPS_ENGINEER",
                         "llmModel", "gpt-4o-mini",
-                        "temperature", 0.3,
-                        "why", "Using ANALYST persona for final synthesis and comprehensive plan creation with realistic time estimates"
+                        "temperature", 0.1,
+                        "why", "Using DEVOPS_ENGINEER persona with very low temperature for precise project structure and configuration management.",
+                        "considerations", List.of(
+                            "Maven dependency management",
+                            "Project directory structure",
+                            "Configuration file setup",
+                            "Build and packaging requirements",
+                            "Environment-specific configurations"
+                        )
                     ),
-                    "input", "Prioritized steps",
-                    "output", Map.of(
-                        "summary", aiResponse.get("summary"),
-                        "estimatedTime", aiResponse.get("estimatedTime"),
-                        "steps", aiResponse.get("steps")
-                    ),
-                    "duration", "1.2s",
+                    "input", aiResponse.get("steps"),
+                    "output", "Project structure and configuration",
+                    "duration", "1.0s",
                     "timestamp", Instant.now().minusSeconds(2).toString()
                 )
             ),
@@ -532,16 +652,329 @@ public class GenAiDemoController {
 
     private Map<String, Object> createMockExecutionTrace(String taskDescription) {
         return createExecutionTrace(taskDescription, Map.of(
-            "analysis", "Complex task requiring detailed planning",
+            "analysis", "Web application requirements analysis: " + taskDescription,
+            "architecture", "Spring Boot layered architecture with REST API, service layer, and data access layer",
             "steps", List.of(
-                Map.of("description", "Research and gather requirements", "priority", 1),
-                Map.of("description", "Create initial design", "priority", 2),
-                Map.of("description", "Implement core functionality", "priority", 3),
-                Map.of("description", "Testing and validation", "priority", 4),
-                Map.of("description", "Deployment and monitoring", "priority", 5)
+                Map.of("description", "Set up Spring Boot project structure", "priority", 1),
+                Map.of("description", "Create entity models and repositories", "priority", 2),
+                Map.of("description", "Implement service layer with business logic", "priority", 3),
+                Map.of("description", "Create REST controllers with API endpoints", "priority", 4),
+                Map.of("description", "Add frontend HTML/CSS/JavaScript files", "priority", 5),
+                Map.of("description", "Configure database and test the application", "priority", 6)
             ),
-            "summary", "Comprehensive execution plan for: " + taskDescription,
-            "estimatedTime", "2-3 weeks"
+            "summary", "Complete Spring Boot application implementation plan for: " + taskDescription,
+            "estimatedTime", "2-3 hours"
         ));
+    }
+    
+    private String buildPromptForType(String input, String promptType) {
+        return switch (promptType) {
+            case "ANALYZE_REQUIREMENTS" -> String.format("""
+                You are a senior solution architect. Analyze the following web application task and extract detailed technical requirements.
+                
+                Task: %s
+                
+                Please provide a JSON response with the following structure:
+                {
+                    "projectName": "Extracted project name",
+                    "applicationType": "REST API, Full-stack Web App, or Microservice",
+                    "entities": ["Entity1", "Entity2", "Entity3"],
+                    "apiEndpoints": ["GET /api/entity1", "POST /api/entity1", "PUT /api/entity1/{id}", "DELETE /api/entity1/{id}"],
+                    "databaseRequirements": "Database type and schema requirements",
+                    "frontendRequirements": "HTML/CSS/JS requirements",
+                    "authenticationNeeded": true/false,
+                    "complexity": "Simple, Moderate, or Complex",
+                    "estimatedFiles": 15,
+                    "technologies": ["Spring Boot", "JPA", "H2 Database", "HTML", "CSS", "JavaScript"]
+                }
+                
+                Focus on:
+                1. Identifying all entities and their relationships
+                2. Determining required API endpoints
+                3. Assessing frontend complexity
+                4. Identifying authentication needs
+                5. Estimating project scope
+                """, input);
+                
+            case "DESIGN_ARCHITECTURE" -> String.format("""
+                You are a solution architect. Design the technical architecture for a Spring Boot application based on these requirements:
+                
+                Requirements: %s
+                
+                Please provide a JSON response with the following structure:
+                {
+                    "architecture": "Layered Architecture, MVC, or Microservices",
+                    "layers": ["Controller", "Service", "Repository", "Entity"],
+                    "dependencies": ["spring-boot-starter-web", "spring-boot-starter-data-jpa", "h2", "spring-boot-starter-test"],
+                    "projectStructure": {
+                        "src/main/java/com/example/controller": "REST controllers",
+                        "src/main/java/com/example/service": "Business logic services",
+                        "src/main/java/com/example/entity": "JPA entities",
+                        "src/main/java/com/example/repository": "Data repositories",
+                        "src/main/resources/static": "Frontend files"
+                    },
+                    "databaseSchema": "Database design and relationships",
+                    "apiDesign": "REST API design patterns",
+                    "securityConsiderations": "Authentication and authorization approach"
+                }
+                
+                Focus on:
+                1. Spring Boot best practices
+                2. Clean architecture principles
+                3. Scalable design patterns
+                4. Security considerations
+                """, input);
+                
+            case "BREAK_DOWN_STEPS" -> String.format("""
+                You are a senior software engineer. Break down the following architecture into detailed implementation steps.
+                
+                Architecture: %s
+                
+                Please provide a JSON response with the following structure:
+                {
+                    "steps": [
+                        {
+                            "stepNumber": 1,
+                            "description": "Create Maven project structure with pom.xml",
+                            "category": "Project Setup",
+                            "estimatedTime": "30 minutes",
+                            "filesToGenerate": ["pom.xml", "src/main/java/com/example/Application.java"],
+                            "dependencies": []
+                        },
+                        {
+                            "stepNumber": 2,
+                            "description": "Create JPA entities with proper annotations",
+                            "category": "Data Layer",
+                            "estimatedTime": "45 minutes",
+                            "filesToGenerate": ["src/main/java/com/example/entity/*.java"],
+                            "dependencies": [1]
+                        }
+                    ],
+                    "totalEstimatedTime": "4-6 hours",
+                    "complexity": "Moderate"
+                }
+                
+                Focus on:
+                1. Logical implementation order
+                2. Dependency management between steps
+                3. Realistic time estimates
+                4. File generation requirements
+                """, input);
+                
+            case "GENERATE_PROJECT_STRUCTURE" -> String.format("""
+                You are a DevOps engineer. Generate the complete project structure for a Spring Boot application.
+                
+                Architecture: %s
+                
+                Please provide a JSON response with the following structure:
+                {
+                    "projectName": "sanitized-project-name",
+                    "directoryStructure": {
+                        "src/main/java/com/example": "Main Java source directory",
+                        "src/main/resources": "Configuration and static resources",
+                        "src/test/java": "Test source directory"
+                    },
+                    "mavenDependencies": ["spring-boot-starter-web", "spring-boot-starter-data-jpa", "h2"],
+                    "configurationFiles": ["application.properties", "pom.xml"],
+                    "sourceFiles": ["Application.java", "controllers/*.java", "services/*.java", "entities/*.java"]
+                }
+                
+                Focus on:
+                1. Maven standard directory layout
+                2. Spring Boot conventions
+                3. Proper package structure
+                4. Configuration management
+                """, input);
+                
+            default -> String.format("""
+                You are an expert project analyst. Break down the following task into specific, actionable steps.
+                
+                Task: %s
+                
+                Please provide a JSON response with the following structure:
+                {
+                    "analysis": "Brief analysis of the task complexity and requirements",
+                    "steps": [
+                        {"description": "Specific actionable step", "priority": 1},
+                        {"description": "Another specific step", "priority": 2}
+                    ],
+                    "summary": "Brief summary of the execution plan",
+                    "estimatedTime": "Realistic time estimate (e.g., '2-3 weeks', '1 month')"
+                }
+                
+                Make sure the steps are:
+                1. Specific and actionable
+                2. In logical order
+                3. Appropriate for the task complexity
+                4. Realistic in scope
+                """, input);
+        };
+    }
+    
+    private Map<String, Object> createCodeGenerationTrace(
+            String taskDescription, 
+            Map<String, Object> requirements, 
+            Map<String, Object> architecture, 
+            List<Map<String, Object>> steps, 
+            Map<String, String> generatedFiles) {
+        
+        return Map.of(
+            "taskDescription", taskDescription,
+            "projectName", requirements.getOrDefault("projectName", "generated-spring-app"),
+            "actionSteps", List.of(
+                Map.of(
+                    "actionName", "analyzeApplicationRequirements",
+                    "stepNumber", 1,
+                    "description", "Analyzing web application requirements and technical specifications",
+                    "reasoning", Map.of(
+                        "thought", "Examining the task to identify: application type (REST API, full-stack, microservice), required entities and relationships, API endpoints needed, data persistence requirements, authentication needs, frontend requirements, and integration points.",
+                        "persona", "SOLUTION_ARCHITECT",
+                        "llmModel", "gpt-4o-mini",
+                        "temperature", 0.3,
+                        "why", "Using SOLUTION_ARCHITECT persona with low temperature for precise technical analysis and requirement extraction. This ensures we capture all necessary components for a production-ready Spring Boot application.",
+                        "considerations", List.of(
+                            "Spring Boot version compatibility",
+                            "Database choice (H2, PostgreSQL, MySQL)",
+                            "REST API design patterns",
+                            "Security requirements",
+                            "Frontend technology stack"
+                        )
+                    ),
+                    "input", taskDescription,
+                    "output", requirements,
+                    "duration", "2.5s",
+                    "timestamp", Instant.now().minusSeconds(20).toString()
+                ),
+                Map.of(
+                    "actionName", "defineApplicationArchitecture",
+                    "stepNumber", 2,
+                    "description", "Designing Spring Boot application architecture and technology stack",
+                    "reasoning", Map.of(
+                        "thought", "Based on the requirements analysis, determining the optimal architecture pattern, technology stack, project structure, and design patterns. Considering scalability, maintainability, and Spring Boot best practices.",
+                        "persona", "SOLUTION_ARCHITECT",
+                        "llmModel", "gpt-4o-mini",
+                        "temperature", 0.2,
+                        "why", "Using SOLUTION_ARCHITECT persona with very low temperature for precise architectural decisions. This ensures consistent, production-ready architecture following Spring Boot conventions.",
+                        "considerations", List.of(
+                            "Layered architecture vs microservices",
+                            "Dependency injection patterns",
+                            "Database access patterns",
+                            "API design principles",
+                            "Security architecture"
+                        )
+                    ),
+                    "input", requirements,
+                    "output", architecture,
+                    "duration", "3.0s",
+                    "timestamp", Instant.now().minusSeconds(16).toString()
+                ),
+                Map.of(
+                    "actionName", "breakDownIntoImplementationSteps",
+                    "stepNumber", 3,
+                    "description", "Breaking down architecture into detailed implementation steps",
+                    "reasoning", Map.of(
+                        "thought", "Converting the architectural design into specific, actionable implementation steps. Considering dependencies between components, optimal development order, and realistic time estimates for each step.",
+                        "persona", "SOFTWARE_ENGINEER",
+                        "llmModel", "gpt-4o-mini",
+                        "temperature", 0.4,
+                        "why", "Using SOFTWARE_ENGINEER persona with moderate temperature for creative problem-solving while maintaining logical structure. This balances innovation with practical implementation considerations.",
+                        "considerations", List.of(
+                            "Step dependencies and order",
+                            "File generation requirements",
+                            "Testing strategy",
+                            "Code quality standards",
+                            "Development workflow"
+                        )
+                    ),
+                    "input", architecture,
+                    "output", steps,
+                    "duration", "2.8s",
+                    "timestamp", Instant.now().minusSeconds(12).toString()
+                ),
+                Map.of(
+                    "actionName", "generateProjectStructure",
+                    "stepNumber", 4,
+                    "description", "Generating Maven project structure and configuration files",
+                    "reasoning", Map.of(
+                        "thought", "Creating the complete Maven project structure with proper directory layout, dependencies, and configuration files. Ensuring compliance with Spring Boot conventions and Maven best practices.",
+                        "persona", "DEVOPS_ENGINEER",
+                        "llmModel", "gpt-4o-mini",
+                        "temperature", 0.1,
+                        "why", "Using DEVOPS_ENGINEER persona with very low temperature for precise, consistent project structure generation. This ensures standard Maven layout and proper dependency management.",
+                        "considerations", List.of(
+                            "Maven directory structure",
+                            "Dependency versions",
+                            "Build configuration",
+                            "Resource management",
+                            "Test structure"
+                        )
+                    ),
+                    "input", architecture,
+                    "output", Map.of("projectStructure", "Generated", "files", List.of("pom.xml", "application.properties")),
+                    "duration", "1.5s",
+                    "timestamp", Instant.now().minusSeconds(8).toString()
+                ),
+                Map.of(
+                    "actionName", "generateSourceCode",
+                    "stepNumber", 5,
+                    "description", "Generating actual Java/Spring Boot code, HTML, CSS, and JavaScript files",
+                    "reasoning", Map.of(
+                        "thought", "Using GenAI to generate production-ready Spring Boot code including controllers, services, entities, repositories, and frontend files. Ensuring code follows Spring Boot best practices, proper annotations, and clean architecture principles.",
+                        "persona", "SENIOR_DEVELOPER",
+                        "llmModel", "gpt-4o-mini",
+                        "temperature", 0.3,
+                        "why", "Using SENIOR_DEVELOPER persona with low temperature for consistent, high-quality code generation. This ensures production-ready code with proper Spring Boot annotations and best practices.",
+                        "considerations", List.of(
+                            "Spring Boot annotations",
+                            "Clean code principles",
+                            "Error handling",
+                            "REST API conventions",
+                            "Frontend integration"
+                        )
+                    ),
+                    "input", steps,
+                    "output", Map.of("generatedFiles", generatedFiles.size(), "fileTypes", List.of("Java", "HTML", "CSS", "JavaScript", "XML", "Properties")),
+                    "duration", "8.0s",
+                    "timestamp", Instant.now().minusSeconds(4).toString()
+                )
+            ),
+            "generatedFiles", generatedFiles,
+            "finalResult", Map.of(
+                "projectName", requirements.getOrDefault("projectName", "generated-spring-app"),
+                "totalFiles", generatedFiles.size(),
+                "fileTypes", List.of("Java", "HTML", "CSS", "JavaScript", "XML", "Properties"),
+                "estimatedBuildTime", "5-10 minutes",
+                "readyToRun", true
+            ),
+            "startTime", Instant.now().minusSeconds(25).toString(),
+            "endTime", Instant.now().toString(),
+            "executionTimeMs", 18000L
+        );
+    }
+    
+    private Map<String, Object> createMockCodeGenerationTrace(String taskDescription) {
+        return createCodeGenerationTrace(
+            taskDescription,
+            Map.of(
+                "projectName", "mock-spring-app",
+                "applicationType", "REST API",
+                "entities", List.of("User", "Post"),
+                "complexity", "Moderate"
+            ),
+            Map.of(
+                "architecture", "Layered Architecture",
+                "layers", List.of("Controller", "Service", "Repository", "Entity")
+            ),
+            List.of(
+                Map.of("stepNumber", 1, "description", "Create Maven project structure", "category", "Project Setup"),
+                Map.of("stepNumber", 2, "description", "Generate JPA entities", "category", "Data Layer"),
+                Map.of("stepNumber", 3, "description", "Create REST controllers", "category", "API Layer")
+            ),
+            Map.of(
+                "pom.xml", "<?xml version=\"1.0\"?>...",
+                "Application.java", "package com.example;...",
+                "index.html", "<!DOCTYPE html>..."
+            )
+        );
     }
 }

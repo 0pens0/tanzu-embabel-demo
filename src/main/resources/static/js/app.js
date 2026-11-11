@@ -17,6 +17,7 @@ class EmbabelDemo {
 
     init() {
         this.setupEventListeners();
+        this.setupCodeGenerationListeners();
         this.loadScenarios();
         
         // Make instance globally available
@@ -955,6 +956,178 @@ Task analyzeTask(UserInput userInput, OperationContext context) {
                 </div>
             </div>
         `;
+    }
+    
+    // Code Generation Methods
+    
+    setupCodeGenerationListeners() {
+        const generateBtn = document.getElementById('generate-code-btn');
+        const downloadBtn = document.getElementById('download-code-btn');
+        
+        if (generateBtn) {
+            generateBtn.addEventListener('click', () => this.generateCode());
+        }
+        
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => this.downloadCode());
+        }
+    }
+    
+    async generateCode() {
+        const generateBtn = document.getElementById('generate-code-btn');
+        const progressDiv = document.getElementById('code-generation-progress');
+        const downloadBtn = document.getElementById('download-code-btn');
+        
+        // Show progress
+        generateBtn.disabled = true;
+        progressDiv.classList.remove('hidden');
+        
+        try {
+            const response = await fetch('/api/generate-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    taskDescription: this.currentScenario ? this.currentScenario.title : 'Custom web application'
+                })
+            });
+            
+            const codeData = await response.json();
+            
+            // Update progress through action steps
+            this.displayCodeGenerationSteps(codeData.actionSteps);
+            
+            // Store generated files
+            this.generatedCode = codeData.generatedFiles;
+            this.projectName = codeData.projectName;
+            
+            // Show code preview
+            this.displayCodePreview(codeData.generatedFiles);
+            
+            // Show download button
+            downloadBtn.classList.remove('hidden');
+            progressDiv.classList.add('hidden');
+            
+        } catch (error) {
+            console.error('Code generation failed:', error);
+            alert('Failed to generate code. Please try again.');
+            generateBtn.disabled = false;
+            progressDiv.classList.add('hidden');
+        }
+    }
+    
+    async downloadCode() {
+        try {
+            const response = await fetch('/api/download-code', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    files: this.generatedCode,
+                    projectName: this.projectName
+                })
+            });
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${this.projectName}.zip`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert('Failed to download code. Please try again.');
+        }
+    }
+    
+    displayCodePreview(files) {
+        const preview = document.getElementById('code-preview');
+        const tabsContainer = document.getElementById('code-files-tabs');
+        const codeDisplay = document.getElementById('code-display');
+        
+        preview.classList.remove('hidden');
+        
+        // Clear existing tabs
+        tabsContainer.innerHTML = '';
+        
+        // Create tabs for each file
+        Object.keys(files).forEach((filepath, index) => {
+            const tab = document.createElement('button');
+            tab.className = `px-4 py-2 rounded-t-lg ${index === 0 ? 'bg-gray-900 text-white' : 'bg-gray-200 text-gray-700'}`;
+            tab.textContent = filepath.split('/').pop();
+            tab.onclick = () => this.showCodeFile(filepath);
+            tabsContainer.appendChild(tab);
+        });
+        
+        // Show first file by default
+        const firstFile = Object.keys(files)[0];
+        if (firstFile) {
+            this.showCodeFile(firstFile);
+        }
+    }
+    
+    showCodeFile(filepath) {
+        const codeDisplay = document.getElementById('code-display');
+        const content = this.generatedCode[filepath];
+        
+        // Update tab styles
+        const tabs = document.querySelectorAll('#code-files-tabs button');
+        tabs.forEach(tab => {
+            tab.className = 'px-4 py-2 rounded-t-lg bg-gray-200 text-gray-700';
+        });
+        
+        // Highlight current tab
+        const currentTab = Array.from(tabs).find(tab => tab.textContent === filepath.split('/').pop());
+        if (currentTab) {
+            currentTab.className = 'px-4 py-2 rounded-t-lg bg-gray-900 text-white';
+        }
+        
+        // Detect language from file extension
+        const ext = filepath.split('.').pop();
+        const langClass = {
+            'java': 'language-java',
+            'xml': 'language-xml',
+            'properties': 'language-properties',
+            'html': 'language-html',
+            'css': 'language-css',
+            'js': 'language-javascript',
+            'md': 'language-markdown'
+        }[ext] || 'language-plaintext';
+        
+        codeDisplay.className = langClass;
+        codeDisplay.textContent = content;
+        
+        // Re-highlight syntax
+        if (window.hljs) {
+            hljs.highlightElement(codeDisplay);
+        }
+    }
+    
+    displayCodeGenerationSteps(actionSteps) {
+        actionSteps.forEach((step, index) => {
+            setTimeout(() => {
+                this.showActionStep(step);
+                
+                // Update progress bar
+                const progress = ((index + 1) / actionSteps.length) * 100;
+                const progressBar = document.getElementById('code-gen-progress-bar');
+                const stepText = document.querySelector('#code-generation-progress .text-sm.text-gray-600');
+                const stepNumber = document.querySelector('#code-generation-progress .text-sm.font-semibold');
+                
+                if (progressBar) {
+                    progressBar.style.width = `${progress}%`;
+                }
+                
+                if (stepText) {
+                    stepText.textContent = step.description;
+                }
+                
+                if (stepNumber) {
+                    stepNumber.textContent = `Step ${step.stepNumber}/5`;
+                }
+            }, index * 800); // Stagger animations
+        });
     }
 }
 

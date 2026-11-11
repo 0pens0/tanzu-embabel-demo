@@ -9,78 +9,44 @@
         <version>3.5.6</version>
         <relativePath/> <!-- Lookup parent from repository -->
     </parent>
-    <groupId>com.embabel.demo</groupId>
-    <artifactId>tanzu-embabel-demo</artifactId>
+    <groupId>com.embabel.template</groupId>
+    <artifactId>ProjectName</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Tanzu Embabel Demo</name>
-    <description>Educational demo application showcasing the Embabel AI agent framework</description>
+    <name>My first agent</name>
+    <description>Generated agent project</description>
 
     <properties>
         <java.version>21</java.version>
         <embabel-agent.version>0.1.3</embabel-agent.version>
-        <maven.compiler.source>21</maven.compiler.source>
-        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
-    <profiles>
-        <profile>
-            <id>genai-demo</id>
-            <activation>
-                <property>
-                    <name>genai-demo</name>
-                </property>
-            </activation>
-            <dependencies>
-                <!-- Only basic Spring Boot dependencies for GenAI demo -->
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-web</artifactId>
-                </dependency>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-actuator</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-    </profiles>
-
     <dependencies>
-        <!-- Main Dependencies - excluded when using genai-demo profile -->
+
+        <!-- Main Dependencies -->
         <dependency>
             <groupId>com.embabel.agent</groupId>
             <artifactId>embabel-agent-starter</artifactId>
             <version>${embabel-agent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>com.embabel.agent</groupId>
             <artifactId>embabel-agent-starter-openai</artifactId>
             <version>${embabel-agent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
+
+        <!-- Uncomment to use Anthropic models -->
+        <!--        <dependency>-->
+        <!--            <groupId>com.embabel.agent</groupId>-->
+        <!--            <artifactId>embabel-agent-starter-anthropic</artifactId>-->
+        <!--            <version>${embabel-agent.version}</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>com.embabel.agent</groupId>
             <artifactId>embabel-agent-starter-shell</artifactId>
             <version>${embabel-agent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -88,25 +54,8 @@
             <artifactId>embabel-agent-test</artifactId>
             <version>${embabel-agent.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
-        <!-- Spring Boot Web for REST API -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-
-        <!-- Spring Boot Actuator for health checks -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
 
         <!-- Unit and Integration Testing -->
         <dependency>
@@ -114,6 +63,7 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
     </dependencies>
 
     <build>
@@ -144,4 +94,5 @@
             </snapshots>
         </repository>
     </repositories>
+
 </project>

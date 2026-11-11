@@ -1,269 +1,216 @@
-// Sample Scenarios for Embabel Demo
+// Sample App Ideas for Spring Coding Agent
 
 const scenarios = [
     {
-        id: 'podcast',
-        title: 'Create a podcast series about sustainable technology with 10 episodes',
-        description: 'Plan and produce a podcast series covering sustainable technology innovations',
-        category: 'Content Creation',
-        complexity: 'Complex',
-        estimatedSteps: 8,
-        expectedDuration: '3-4 weeks',
-        highlights: [
-            'Uses ANALYST persona for research',
-            'Demonstrates multi-step breakdown',
-            'Shows dependency prioritization'
-        ],
-        expectedActions: ['analyzeTask', 'breakDownIntoSteps', 'prioritizeSteps', 'createExecutionPlan'],
-        educationalNotes: {
-            'analyzeTask': 'Uses ANALYST persona with temperature 0.3 for accurate complexity assessment',
-            'breakDownIntoSteps': 'Demonstrates how the agent breaks complex tasks into manageable components',
-            'prioritizeSteps': 'Shows dependency-based prioritization using PRIORITIZER persona',
-            'createExecutionPlan': 'Final assembly of all components into a cohesive execution plan'
-        }
-    },
-    {
-        id: 'mobile-app',
-        title: 'Develop a mobile app for tracking personal fitness goals with social features',
-        description: 'Build a fitness tracking app with social sharing and community features',
-        category: 'Mobile Development',
-        complexity: 'Very Complex',
-        estimatedSteps: 12,
-        expectedDuration: '4-6 weeks',
-        highlights: [
-            'Shows technical architecture planning',
-            'Demonstrates user experience considerations',
-            'Includes integration complexity'
-        ],
-        expectedActions: ['analyzeTask', 'breakDownIntoSteps', 'prioritizeSteps', 'createExecutionPlan'],
-        educationalNotes: {
-            'analyzeTask': 'Uses ANALYST persona to assess technical complexity and requirements',
-            'breakDownIntoSteps': 'Breaks down into frontend, backend, database, and integration components',
-            'prioritizeSteps': 'Prioritizes based on technical dependencies and user value',
-            'createExecutionPlan': 'Creates detailed development timeline with milestones'
-        }
-    },
-    {
-        id: 'marketing-campaign',
-        title: 'Plan a marketing campaign for launching a new eco-friendly product line',
-        description: 'Create a comprehensive marketing strategy for sustainable product launch',
-        category: 'Business Strategy',
-        complexity: 'Complex',
-        estimatedSteps: 10,
-        expectedDuration: '2-3 weeks',
-        highlights: [
-            'Shows strategic thinking process',
-            'Demonstrates market analysis',
-            'Includes multi-channel planning'
-        ],
-        expectedActions: ['analyzeTask', 'breakDownIntoSteps', 'prioritizeSteps', 'createExecutionPlan'],
-        educationalNotes: {
-            'analyzeTask': 'Uses ANALYST persona to understand market dynamics and competition',
-            'breakDownIntoSteps': 'Breaks down into research, strategy, creative, and execution phases',
-            'prioritizeSteps': 'Prioritizes based on market timing and resource availability',
-            'createExecutionPlan': 'Creates comprehensive campaign timeline with key milestones'
-        }
-    },
-    {
-        id: 'company-retreat',
-        title: 'Organize a company retreat for 50 employees with team building activities',
-        description: 'Plan logistics, activities, and budget for a comprehensive company retreat',
-        category: 'Event Planning',
+        id: 'blog-platform',
+        title: 'Create a REST API for a blog platform with CRUD operations',
+        description: 'Spring Boot REST API with posts, comments, and user management',
+        category: 'Web Application',
         complexity: 'Moderate',
         estimatedSteps: 6,
-        expectedDuration: '2-3 weeks',
+        expectedDuration: '2-3 hours',
         highlights: [
-            'Shows logistical planning',
-            'Demonstrates budget considerations',
-            'Includes activity coordination'
+            'REST API with CRUD operations',
+            'JPA entities and relationships',
+            'User authentication',
+            'JSON API responses'
         ],
-        expectedActions: ['analyzeTask', 'breakDownIntoSteps', 'prioritizeSteps', 'createExecutionPlan'],
+        expectedActions: ['analyzeApplicationRequirements', 'defineApplicationArchitecture', 'breakDownIntoImplementationSteps', 'generateProjectStructure', 'generateSourceCode'],
         educationalNotes: {
-            'analyzeTask': 'Uses ANALYST persona to assess requirements and constraints',
-            'breakDownIntoSteps': 'Breaks down into venue, activities, logistics, and budget components',
-            'prioritizeSteps': 'Prioritizes based on booking deadlines and critical dependencies',
-            'createExecutionPlan': 'Creates detailed timeline with vendor coordination and checkpoints'
+            'analyzeApplicationRequirements': 'Identifies entities (Post, Comment, User), API endpoints, and authentication needs',
+            'defineApplicationArchitecture': 'Designs layered architecture with controllers, services, and repositories',
+            'breakDownIntoImplementationSteps': 'Creates step-by-step implementation plan with dependencies',
+            'generateProjectStructure': 'Sets up Maven project with Spring Boot dependencies',
+            'generateSourceCode': 'Generates complete Spring Boot application with all source files'
+        }
+    },
+    {
+        id: 'todo-app',
+        title: 'Build a todo list web app with Spring Boot backend',
+        description: 'Full-stack todo application with REST API and HTML frontend',
+        category: 'Web Application',
+        complexity: 'Simple',
+        estimatedSteps: 5,
+        expectedDuration: '1-2 hours',
+        highlights: [
+            'REST API with CRUD operations',
+            'Database persistence',
+            'Modern web UI',
+            'Frontend integration'
+        ],
+        expectedActions: ['analyzeApplicationRequirements', 'defineApplicationArchitecture', 'breakDownIntoImplementationSteps', 'generateProjectStructure', 'generateSourceCode'],
+        educationalNotes: {
+            'analyzeApplicationRequirements': 'Identifies Todo entity, CRUD operations, and frontend requirements',
+            'defineApplicationArchitecture': 'Designs simple layered architecture with REST API and static frontend',
+            'breakDownIntoImplementationSteps': 'Plans implementation order: entities → services → controllers → frontend',
+            'generateProjectStructure': 'Creates Maven project with Spring Boot web and JPA dependencies',
+            'generateSourceCode': 'Generates complete application with Java backend and HTML/CSS/JS frontend'
+        }
+    },
+    {
+        id: 'product-catalog',
+        title: 'Create a product catalog API with search functionality',
+        description: 'E-commerce product catalog with filtering, pagination, and search',
+        category: 'Web Application',
+        complexity: 'Moderate',
+        estimatedSteps: 7,
+        expectedDuration: '2-3 hours',
+        highlights: [
+            'Advanced search features',
+            'Filtering & pagination',
+            'Database relationships',
+            'REST API best practices'
+        ],
+        expectedActions: ['analyzeApplicationRequirements', 'defineApplicationArchitecture', 'breakDownIntoImplementationSteps', 'generateProjectStructure', 'generateSourceCode'],
+        educationalNotes: {
+            'analyzeApplicationRequirements': 'Identifies Product, Category entities, search requirements, and API endpoints',
+            'defineApplicationArchitecture': 'Designs architecture with search service, pagination, and filtering',
+            'breakDownIntoImplementationSteps': 'Plans complex implementation with search algorithms and database optimization',
+            'generateProjectStructure': 'Sets up project with additional dependencies for search and pagination',
+            'generateSourceCode': 'Generates sophisticated application with advanced search capabilities'
+        }
+    },
+    {
+        id: 'user-management',
+        title: 'Build a user management system with authentication',
+        description: 'Spring Boot application with user registration, login, and profile management',
+        category: 'Web Application',
+        complexity: 'Moderate',
+        estimatedSteps: 6,
+        expectedDuration: '2-3 hours',
+        highlights: [
+            'User authentication',
+            'Security implementation',
+            'Profile management',
+            'Session handling'
+        ],
+        expectedActions: ['analyzeApplicationRequirements', 'defineApplicationArchitecture', 'breakDownIntoImplementationSteps', 'generateProjectStructure', 'generateSourceCode'],
+        educationalNotes: {
+            'analyzeApplicationRequirements': 'Identifies User entity, authentication requirements, and security needs',
+            'defineApplicationArchitecture': 'Designs secure architecture with authentication and authorization',
+            'breakDownIntoImplementationSteps': 'Plans security-first implementation with proper authentication flow',
+            'generateProjectStructure': 'Sets up project with Spring Security dependencies and configuration',
+            'generateSourceCode': 'Generates secure application with proper authentication and user management'
+        }
+    },
+    {
+        id: 'bookstore-api',
+        title: 'Create a bookstore REST API with books, authors, and customers',
+        description: 'Complete bookstore management system with inventory and customer management',
+        category: 'Web Application',
+        complexity: 'Moderate',
+        estimatedSteps: 7,
+        expectedDuration: '2-3 hours',
+        highlights: [
+            'Complex entity relationships',
+            'Inventory management',
+            'Customer operations',
+            'Business logic implementation'
+        ],
+        expectedActions: ['analyzeApplicationRequirements', 'defineApplicationArchitecture', 'breakDownIntoImplementationSteps', 'generateProjectStructure', 'generateSourceCode'],
+        educationalNotes: {
+            'analyzeApplicationRequirements': 'Identifies Book, Author, Customer entities with complex relationships',
+            'defineApplicationArchitecture': 'Designs architecture with proper entity relationships and business logic',
+            'breakDownIntoImplementationSteps': 'Plans implementation considering entity relationships and business rules',
+            'generateProjectStructure': 'Sets up project with JPA and relationship mapping dependencies',
+            'generateSourceCode': 'Generates application with complex entity relationships and business logic'
+        }
+    },
+    {
+        id: 'event-management',
+        title: 'Build an event management system with registration and ticketing',
+        description: 'Event management platform with event creation, registration, and ticket management',
+        category: 'Web Application',
+        complexity: 'Complex',
+        estimatedSteps: 8,
+        expectedDuration: '3-4 hours',
+        highlights: [
+            'Event management',
+            'Registration system',
+            'Ticket generation',
+            'Payment integration ready'
+        ],
+        expectedActions: ['analyzeApplicationRequirements', 'defineApplicationArchitecture', 'breakDownIntoImplementationSteps', 'generateProjectStructure', 'generateSourceCode'],
+        educationalNotes: {
+            'analyzeApplicationRequirements': 'Identifies Event, Registration, Ticket entities with complex business rules',
+            'defineApplicationArchitecture': 'Designs architecture with event management and registration workflows',
+            'breakDownIntoImplementationSteps': 'Plans complex implementation with business logic and state management',
+            'generateProjectStructure': 'Sets up project with comprehensive dependencies for event management',
+            'generateSourceCode': 'Generates sophisticated application with complex business logic and workflows'
         }
     }
 ];
 
-class Scenario {
-    constructor(data) {
-        Object.assign(this, data);
-    }
-
-    renderCard() {
-        const complexityColor = this.getComplexityColor();
-        const categoryIcon = this.getCategoryIcon();
-        
-        return `
-            <div class="scenario-card bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer border border-gray-200" 
-                 data-scenario-id="${this.id}">
-                <div class="p-6">
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex items-center">
-                            <span class="text-2xl mr-3">${categoryIcon}</span>
-                            <div>
-                                <h3 class="text-lg font-semibold text-gray-900">${this.title}</h3>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${complexityColor}">
-                                    ${this.complexity}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="text-right text-sm text-gray-500">
-                            <div>${this.estimatedSteps} steps</div>
-                            <div>${this.expectedDuration}</div>
-                        </div>
-                    </div>
-                    
-                    <p class="text-gray-600 text-sm mb-4">${this.description}</p>
-                    
-                    <div class="mb-4">
-                        <div class="text-xs font-medium text-gray-700 mb-2">Key Highlights:</div>
-                        <ul class="text-xs text-gray-600 space-y-1">
-                            ${this.highlights.map(highlight => `<li>• ${highlight}</li>`).join('')}
-                        </ul>
-                    </div>
-                    
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs text-gray-500">${this.category}</span>
-                        <button class="scenario-select-btn bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
-                            Select This Task
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    getComplexityColor() {
-        switch (this.complexity) {
-            case 'Simple': return 'bg-green-100 text-green-800';
-            case 'Moderate': return 'bg-yellow-100 text-yellow-800';
-            case 'Complex': return 'bg-orange-100 text-orange-800';
-            case 'Very Complex': return 'bg-red-100 text-red-800';
-            default: return 'bg-gray-100 text-gray-800';
-        }
-    }
-
-    getCategoryIcon() {
-        switch (this.category) {
-            case 'Content Creation': return '🎙️';
-            case 'Mobile Development': return '📱';
-            case 'Business Strategy': return '📈';
-            case 'Event Planning': return '🎉';
-            default: return '📋';
-        }
-    }
-
-    getExpectedActions() {
-        return this.expectedActions || ['analyzeTask', 'breakDownIntoSteps', 'prioritizeSteps', 'createExecutionPlan'];
-    }
-
-    getEducationalNote(actionName) {
-        return this.educationalNotes?.[actionName] || 'No specific notes for this action';
-    }
-
-    // Static methods for scenario management
-    static getAll() {
-        return scenarios.map(data => new Scenario(data));
-    }
-
-    static getById(id) {
-        const data = scenarios.find(s => s.id === id);
-        return data ? new Scenario(data) : null;
-    }
-
-    static getByCategory(category) {
-        return scenarios
-            .filter(s => s.category === category)
-            .map(data => new Scenario(data));
-    }
-
-    static getCategories() {
-        return [...new Set(scenarios.map(s => s.category))];
-    }
-}
-
-// Scenario Manager for handling scenario operations
 class ScenarioManager {
     constructor() {
-        this.scenarios = Scenario.getAll();
-        this.selectedScenario = null;
+        this.scenarios = scenarios;
     }
 
-    renderScenarioGrid(containerId) {
+    getAllScenarios() {
+        return this.scenarios;
+    }
+
+    getScenarioById(id) {
+        return this.scenarios.find(scenario => scenario.id === id);
+    }
+
+    getScenariosByCategory(category) {
+        return this.scenarios.filter(scenario => scenario.category === category);
+    }
+
+    getScenariosByComplexity(complexity) {
+        return this.scenarios.filter(scenario => scenario.complexity === complexity);
+    }
+
+    renderScenarioCards(containerId) {
         const container = document.getElementById(containerId);
         if (!container) return;
 
-        const categories = Scenario.getCategories();
-        let html = '';
-
-        categories.forEach(category => {
-            const categoryScenarios = this.scenarios.filter(s => s.category === category);
-            html += `
-                <div class="category-section mb-8">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-                        <span class="mr-2">${categoryScenarios[0].getCategoryIcon()}</span>
-                        ${category}
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        ${categoryScenarios.map(scenario => scenario.renderCard()).join('')}
+        container.innerHTML = this.scenarios.map(scenario => `
+            <div class="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md transition-shadow cursor-pointer scenario-card" 
+                 data-scenario-id="${scenario.id}">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-900 mb-2">${scenario.title}</h4>
+                        <p class="text-gray-600 text-sm mb-3">${scenario.description}</p>
+                    </div>
+                    <div class="ml-4 flex flex-col items-end">
+                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mb-2">${scenario.category}</span>
+                        <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">${scenario.complexity}</span>
                     </div>
                 </div>
-            `;
-        });
+                
+                <div class="space-y-2 text-xs text-gray-500 mb-4">
+                    <div class="flex items-center">
+                        <span class="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                        <span>${scenario.estimatedSteps} implementation steps</span>
+                    </div>
+                    <div class="flex items-center">
+                        <span class="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                        <span>Estimated time: ${scenario.expectedDuration}</span>
+                    </div>
+                </div>
+                
+                <div class="flex flex-wrap gap-1">
+                    ${scenario.highlights.map(highlight => 
+                        `<span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded">${highlight}</span>`
+                    ).join('')}
+                </div>
+            </div>
+        `).join('');
 
-        container.innerHTML = html;
-        this.setupEventListeners();
-    }
-
-    setupEventListeners() {
-        // Scenario selection
-        document.addEventListener('click', (e) => {
-            if (e.target.classList.contains('scenario-select-btn')) {
-                const card = e.target.closest('.scenario-card');
+        // Add click handlers
+        container.querySelectorAll('.scenario-card').forEach(card => {
+            card.addEventListener('click', () => {
                 const scenarioId = card.dataset.scenarioId;
-                this.selectScenario(scenarioId);
-            }
+                const scenario = this.getScenarioById(scenarioId);
+                if (scenario && window.embabelDemo) {
+                    window.embabelDemo.executeScenario(scenario);
+                }
+            });
         });
-    }
-
-    selectScenario(scenarioId) {
-        this.selectedScenario = Scenario.getById(scenarioId);
-        if (this.selectedScenario && window.embabelDemo) {
-            window.embabelDemo.selectScenario(this.selectedScenario);
-        }
-    }
-
-    getSelectedScenario() {
-        return this.selectedScenario;
-    }
-
-    // Custom task creation
-    createCustomTask(title, description, category = 'Custom') {
-        const customScenario = new Scenario({
-            id: `custom-${Date.now()}`,
-            title: title,
-            description: description,
-            category: category,
-            complexity: 'Moderate',
-            estimatedSteps: 6,
-            expectedDuration: '1-2 weeks',
-            highlights: ['Custom task created by user'],
-            expectedActions: ['analyzeTask', 'breakDownIntoSteps', 'prioritizeSteps', 'createExecutionPlan'],
-            educationalNotes: {
-                'analyzeTask': 'Analyzing custom task requirements',
-                'breakDownIntoSteps': 'Breaking down custom task into actionable steps',
-                'prioritizeSteps': 'Prioritizing steps based on dependencies',
-                'createExecutionPlan': 'Creating execution plan for custom task'
-            }
-        });
-
-        return customScenario;
     }
 }
 
-// Export for use in other modules
-window.Scenario = Scenario;
+// Make ScenarioManager globally available
 window.ScenarioManager = ScenarioManager;
